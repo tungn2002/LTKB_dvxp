@@ -14,6 +14,7 @@ import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
 import { Rap } from "../entity/Rap";
 import { Phim } from "../entity/Phim";
+import { MoreThan, getRepository } from "typeorm";
 
 
 //
@@ -244,8 +245,6 @@ itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
     const item1= await AppDataSource.manager.find(Rap);
     const item2= await AppDataSource.manager.find(Phim);
 
-
-
     return res.render("items/addlichchieu", {list:item1,list2:item2,message:"null"});
 
 
@@ -323,6 +322,135 @@ itemsRouter.delete("/deletelichchieu/:id", async (req: Request, res: Response) =
   }
 });
 //-----------------------------------------------------------
+            //Đặt vé:
+  itemsRouter.get("/datve/:id", async (req: Request, res: Response) => {
+    const idphim: number = parseInt(req.params.id, 10);
+    try {
+      const item = await AppDataSource.manager.findOneOrFail(Phim, { where: { idphim } });
+  
+      //
+    return res.render("items/Dat_ve", { list:[item],message:"null"});
+      
+    } catch (e) {
+      res.status(500).send(e.message);
+    }
+  });
+  //Chọn vé: chọn ngày chiếu - với id phim 
+  itemsRouter.get("/chonve/:id", async (req: Request, res: Response) => {
+    const idphim: number = parseInt(req.params.id, 10);
+    try {
+      const lichchieuRepository = AppDataSource.getRepository(Lichchieu);
+      const currentDate = new Date();
+      const item = await lichchieuRepository.query(`
+        SELECT DISTINCT DATE_FORMAT(lichchieu.ngaychieu, '%Y-%m-%d') as ngaychieu
+        FROM Lichchieu lichchieu
+        WHERE lichchieu.ngaychieu > ?
+          AND lichchieu.idphim = ?
+      `, [currentDate, idphim]);
+      
+    return res.render("items/chonVe", { list:item,iphim:idphim,message:"null"});
+      
+    } catch (e) {
+      res.status(500).send(e.message);
+    }
+  });
+  //Chọn vé: chọn nơi chiếu - với id phim và ngày chiếu
+  itemsRouter.post("/chonve2", async (req: Request, res: Response) => {
+    try {
+      const idphimz=req.body.idphim;
+      const ngaychieuz=req.body.ngaychieu;
+      //
+      const lichchieuRepository = AppDataSource.getRepository(Rap);
+      const query = `
+      SELECT DISTINCT Rap.diachi 
+      FROM Rap 
+      WHERE Rap.idrap IN (
+        SELECT DISTINCT Lichchieu.idrap
+        FROM Lichchieu
+        WHERE Lichchieu.idphim = ?
+          AND Lichchieu.ngaychieu = ?
+      )
+    `;
+    const items = await lichchieuRepository.query(query, [idphimz, ngaychieuz]);
+      //
+    return res.render("items/chonVe2", { list:items,iphim:idphimz,nchieu:ngaychieuz,message:"null"});
+      
+    } catch (e) {
+      res.status(500).send(e.message);
+    }
+  });
+  //Chọn vé: chọn giờ chiếu - với nơi chiếu, id phim và ngày chiếu
+  itemsRouter.post("/chonve3", async (req: Request, res: Response) => {
+    try {
+      const idphimz=req.body.idphim;
+      const ngaychieuz=req.body.ngaychieu;
+      const diachiz=req.body.diachi;
+      //
+      const lichchieuRepository = AppDataSource.getRepository(Lichchieu);
+      const query = `
+    SELECT DISTINCT Lichchieu.giochieu
+    FROM Lichchieu
+    INNER JOIN Rap ON Lichchieu.idrap = Rap.idrap
+    WHERE Lichchieu.idphim = ?
+      AND Lichchieu.ngaychieu = ?
+      AND Rap.diachi = ?
+    GROUP BY Lichchieu.giochieu
+  `;
+const items = await lichchieuRepository.query(query, [idphimz, ngaychieuz, diachiz]);
+      //
+    return res.render("items/chonVe3", { list:items,dchi:diachiz,iphim:idphimz,nchieu:ngaychieuz,message:"null"});
+    } catch (e) {
+      res.status(500).send(e.message);
+    }
+  });
+  //Chọn vé: chọn ghế - với giờ chiếu, nơi chiếu, id phim và ngày chiếu
+
+  itemsRouter.post("/chonve4", async (req: Request, res: Response) => {
+    try {
+      const idphimz=req.body.idphim;
+      const ngaychieuz=req.body.ngaychieu;
+      const diachiz=req.body.diachi;
+      const giochieuz=req.body.giochieu;
+
+      //
+      const lichchieuRepository = AppDataSource.getRepository(Ghe);
+      const query = `
+    SELECT DISTINCT Ghe.*
+    FROM Ghe
+    INNER JOIN Phong ON Ghe.idphong = Phong.idphong
+    INNER JOIN Lichchieu ON Phong.idrap = Lichchieu.idrap
+    INNER JOIN Rap ON Lichchieu.idrap = Rap.idrap
+    WHERE Lichchieu.idphim = ?
+      AND Lichchieu.ngaychieu = ?
+      AND Lichchieu.giochieu = ?
+      AND Rap.diachi = ?
+      AND NOT EXISTS (
+          SELECT * FROM Ve
+          WHERE Ve.idghe = Ghe.idghe
+      )
+  `;
+  const items = await lichchieuRepository.query(query, [idphimz, ngaychieuz, giochieuz, diachiz]);
+      //
+    return res.render("items/chonVe4", { list:items,message:"null"});
+    } catch (e) {
+      res.status(500).send(e.message);
+    }
+  });
+  //đặt ghế
+  
+itemsRouter.post("/datghe", async (req: Request, res: Response) => {
+  try {
+    const ve = new Ve(); 
+    ve.idghe = req.body.idghe;
+    ve.idkh = req.body.idkh;//cansua
+    await AppDataSource.manager.save(ve);
+
+    //res.redirect('/api/menu/items/dsghe');
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//--------------------------------------------------
 itemsRouter.get("/addd", async (req: Request, res: Response) => {
   try {
 

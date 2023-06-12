@@ -1,0 +1,30 @@
+
+.col{
+    display: flex;
+}
+.col .c2{
+    width: 185px;
+}
+
+.bottom{
+    margin-bottom: 20px;
+}
+.bottom-c1{
+    display: inline;
+}
+.bottom-c1 a{
+    text-decoration: none;
+    color: black;
+}
+.bottom-c1 ul{
+    list-style: none;
+    display: flex;
+    float: left;
+}
+
+.tail{
+    height: 200px;
+    background-image: url(".\\ảnh\\bt.jpg");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
