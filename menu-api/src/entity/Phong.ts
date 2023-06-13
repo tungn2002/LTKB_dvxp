@@ -17,9 +17,6 @@ export class Phong {
     @Matches(/^[\p{L}\d\s]+$/u)
     tenphong: string
 
-    @OneToMany(() => Lichchieu, lichchieu => lichchieu.phong, { onDelete: "CASCADE", onUpdate: "CASCADE" })
-    lichchieu: Lichchieu[];
-
     @OneToMany(() => Ghe, ghe => ghe.phong, { onDelete: "CASCADE", onUpdate: "CASCADE" })
     ghe: Ghe[];
 

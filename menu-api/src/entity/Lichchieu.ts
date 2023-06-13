@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from "typeorm"
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne,OneToOne, JoinColumn } from "typeorm"
 import { IsNotEmpty,IsISO8601 , IsDate  } from "class-validator";
 import { Phong } from './Phong'
 import { Phim } from './Phim'
@@ -32,7 +32,7 @@ export class Lichchieu {
     gioketthuc: Date
   
 
-    @ManyToOne(() => Phong, phong => phong.lichchieu, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+    @OneToOne(() => Phong, { onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn({ name: "idphong" })
     phong: Phong;
 
