@@ -323,6 +323,76 @@ itemsRouter.delete("/deletelichchieu/:id", async (req: Request, res: Response) =
   }
 });
 //-----------------------------------------------------------
+//Dat ve
+
+itemsRouter.get("/datve/:id", async (req: Request, res: Response) => {
+  const idphim: number = parseInt(req.params.id, 10);
+  try {
+    const item = await AppDataSource.manager.findOneOrFail(Phim, { where: { idphim } });
+
+
+    //
+  return res.render("items/user/Dat_ve", { list:[item],message:"null"});
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//Ngay chieu với idphim
+itemsRouter.get("/ngaychieu/:id", async (req: Request, res: Response) => {
+  const idphim: number = parseInt(req.params.id, 10);
+  try {
+    const results = await AppDataSource.manager.query("SELECT DISTINCT DATE_FORMAT(ngaychieu, '%Y-%m-%d') AS ngaychieu_formatted FROM Lichchieu WHERE idphim = ?",[idphim]);
+
+    //
+  return res.render("items/user/chonVe", { iphim:idphim,list:results,message:"null"});
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//chọn id và gio chiếu với ngày chiếu và idphim
+itemsRouter.post("/giochieu", async (req: Request, res: Response) => {
+  const idphim=req.body.idphim;
+  const ngaychieu=req.body.ngaychieu;
+  try {
+    const results = await AppDataSource.manager.query("SELECT idlichchieu, giochieu FROM Lichchieu WHERE ngaychieu =? AND idphim = ?",[ngaychieu,idphim]);
+
+    //
+  return res.render("items/user/chonVe2", { list:results,message:"null"});
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//chọn ghe theo id gio chieu//lay ng dang danh nhap o localhost
+itemsRouter.get("/chonghe/:id", async (req: Request, res: Response) => {
+  const idlichchieu: number = parseInt(req.params.id, 10);
+
+  try {
+    const results = await AppDataSource.manager.query("SELECT Ghe.idghe, Ghe.tenghe FROM Lichchieu JOIN Ghe ON Lichchieu.idphong = Ghe.idphong WHERE Lichchieu.idlichchieu = ?",[idlichchieu]);
+    const results2 = await AppDataSource.manager.query("SELECT idghe FROM Ve");
+    //
+  return res.render("items/user/chonVe3", { list:results,list2:results2,message:"null"});
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//datve
+itemsRouter.post("/datghe", async (req: Request, res: Response) => {
+  try {
+    const ve = new Ve()
+    ve.idkh = req.body.idkh;
+    ve.idghe =req.body.idghe;
+    await AppDataSource.manager.save(ve);
+    //res.redirect('/api/menu/items/dsve');
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+//
 itemsRouter.get("/addd", async (req: Request, res: Response) => {
   try {
 
