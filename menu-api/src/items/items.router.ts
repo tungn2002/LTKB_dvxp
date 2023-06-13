@@ -13,6 +13,8 @@ import { Ghe } from "../entity/Ghe";
 import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
 import { Phim } from "../entity/Phim";
+import { User } from "../entity/User";
+//import * as session from 'express-session';
 
 
 //
@@ -35,7 +37,68 @@ itemsRouter.use(methodOverride("_method"));
  */
 //
 
+//truong
+// đăng nhập
+itemsRouter.get("/trangchu", async (req: Request, res: Response) => {
+  try {
+    res.render("items/user/trangchu.ejs");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+itemsRouter.get("/dangnhap", async (req: Request, res: Response) => {
+  try {
+    res.render("items/user/login.ejs");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
+  const email = req.body.email;
+  const password = req.body.password; 
+  try {
+    // Kiểm tra xem email và password có trong DB không
+    const user = await AppDataSource.manager.findOne(User, { where: { email: email, password: password } });
 
+    if (user) {//kiem tra xem nola admin hay la khach hang
+      if(user.idql==null){
+        // Nếu email và password trùng với DB thì cho phép đăng nhập
+        const kh = await AppDataSource.manager.findOne(Khachhang, { where: { idkh: user.idkh} });
+        const iduser= kh.idkh;
+       
+
+        return res.render("items/user/trangchu.ejs", { user: user });
+      }
+      else{
+        res.redirect('/api/menu/items/dsve');
+      }
+    } else {
+      // Nếu không thì thông báo lỗi đăng nhập
+      return res.render("items/user/login.ejs", { message: "Email hoặc mật khẩu không đúng."});
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+// itemsRouter.post('/login', async (req: Request, res: Response) => {
+//   const email = req.body.email;
+//   const password = req.body.password;
+
+//   try {
+//     // Kiểm tra xem email và password có trong DB không
+//     const user = await AppDataSource.manager.findOne(User, { where: { email: email, password: password } });
+
+//     if (user) {
+//       // Nếu email và password trùng với DB thì cho phép đăng nhập
+//       return res.render("items/ve", { user: user });
+//     } else {
+//       // Nếu không thì thông báo lỗi đăng nhập
+//       return res.render("items/dangnhap", { message: "Email hoặc mật khẩu không đúng." });
+//     }
+//   } catch (e) {
+//     res.status(500).send(e.message);
+//   }
+// });
 //
 //----------------------------------vé---------------------
 //trang quan ly ve
@@ -575,4 +638,5 @@ itemsRouter.get("/", async (req: Request, res: Response) => {
     }
   });
 //
+
 
