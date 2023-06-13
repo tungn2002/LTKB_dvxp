@@ -26,13 +26,13 @@
             <div class="col">
                 <form action="/api/menu/items/updatelichchieu/<%= list3[0].idlichchieu %>?_method=PUT" method="POST">
                     <label for="">Rạp</label>
-                    <select name="idrap" class="form-select">
+                    <select name="idphong" class="form-select">
                         <% for (let i=0; i<list.length; i++) { %>
-                            <% if(list3[0].idrap==list[i].idrap) {%>
+                            <% if(list3[0].idphong==list[i].idphong) {%>
 
-                            <option value="<%= list[i].idrap %>" selected="selected"><%= list[i].idrap %> - <%= list[i].tenrap %></option>
+                            <option value="<%= list[i].idphong %>" selected="selected"><%= list[i].idphong %> - <%= list[i].tenphong %></option>
                             <% }else{%>
-                            <option value="<%= list[i].idrap %>"><%= list[i].idrap %> - <%= list[i].tenrap %></option>
+                            <option value="<%= list[i].idphong %>"><%= list[i].idphong %> - <%= list[i].tenphong %></option>
                             <%}%>
                             
                           <% } %>

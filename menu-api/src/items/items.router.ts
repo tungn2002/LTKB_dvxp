@@ -12,7 +12,6 @@ import { Khachhang } from "../entity/Khachhang";
 import { Ghe } from "../entity/Ghe";
 import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
-import { Rap } from "../entity/Rap";
 import { Phim } from "../entity/Phim";
 
 
@@ -87,9 +86,10 @@ itemsRouter.get("/editve/:id", async (req: Request, res: Response) => {
   const item = await AppDataSource.manager.findOneOrFail(Ve, { where: { idve } });
     //
     const items= await AppDataSource.manager.find(Khachhang);
+    
 
     const ghedoichua = await AppDataSource.manager.createQueryBuilder(Ghe, "ghe")
-    .where("ghe.idghe NOT IN (SELECT idghe FROM Ve)")
+    .where("ghe.idghe NOT IN (SELECT idghe FROM Ve) OR ghe.idghe = :idghe", { idghe: item.idghe })
     .getMany();
     //
   return res.render("items/editve", { list:items,list2:ghedoichua,list3: [item],message:"null"});
@@ -240,13 +240,12 @@ itemsRouter.get("/dslichchieu", async (req: Request, res: Response) => {
 //trang them ve
 itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
   try {
-
-    const item1= await AppDataSource.manager.find(Rap);
+    const items= await AppDataSource.manager.find(Phong);
     const item2= await AppDataSource.manager.find(Phim);
 
 
 
-    return res.render("items/addlichchieu", {list:item1,list2:item2,message:"null"});
+    return res.render("items/addlichchieu", {list:items,list2:item2,message:"null"});
 
 
   } catch (e) {
@@ -257,7 +256,7 @@ itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
 itemsRouter.post("/createlichchieu", async (req: Request, res: Response) => {
   try {
     const lichchieu = new Lichchieu()
-    lichchieu.idrap = req.body.idrap;
+    lichchieu.idphong =req.body.idphong;
     lichchieu.idphim =req.body.idphim;
     lichchieu.ngaychieu = req.body.ngaychieu;
     lichchieu.giochieu =req.body.giochieu;
@@ -276,10 +275,11 @@ itemsRouter.get("/editlichchieu/:id", async (req: Request, res: Response) => {
     //lichchieu muon sua
   const item = await AppDataSource.manager.findOneOrFail(Lichchieu, { where: { idlichchieu } });
     //
-    const item2= await AppDataSource.manager.find(Rap);
     const item3= await AppDataSource.manager.find(Phim);
+    const items= await AppDataSource.manager.find(Phong);
 
-  return res.render("items/editlichchieu", { list:item2,list2:item3,list3: [item],message:"null"});
+
+  return res.render("items/editlichchieu", {list:items,list2:item3,list3: [item],message:"null"});
     
   } catch (e) {
     res.status(500).send(e.message);
@@ -296,8 +296,8 @@ itemsRouter.put("/updatelichchieu/:id", async (req: Request, res: Response) => {
     const lichchieuToUpdate = await lichchieuRepository.findOneBy({
         idlichchieu: idz,
     })
-    lichchieuToUpdate.idrap = req.body.idrap;
     lichchieuToUpdate.idphim =req.body.idphim;
+    lichchieuToUpdate.idphong =req.body.idphong;
     lichchieuToUpdate.ngaychieu = req.body.ngaychieu;
     lichchieuToUpdate.giochieu =req.body.giochieu;
     lichchieuToUpdate.gioketthuc = req.body.gioketthuc;

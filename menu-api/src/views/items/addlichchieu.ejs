@@ -25,10 +25,10 @@
         <div class="row my-5">
             <div class="col">
                 <form action="/api/menu/items/createlichchieu" method="post">
-                    <label for="">Rạp</label>
-                    <select name="idrap" class="form-select">
+                    <label for="">Phòng</label>
+                    <select name="idphong" class="form-select">
                         <% for (let i=0; i<list.length; i++) { %>
-                            <option value="<%= list[i].idrap %>"><%= list[i].idrap %> - <%= list[i].tenrap %></option>
+                            <option value="<%= list[i].idphong %>"><%= list[i].idphong %> - <%= list[i].tenphong %></option>
                           <% } %>
                     </select>
                     <label for="">Phim</label>
