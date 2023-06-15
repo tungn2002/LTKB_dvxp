@@ -13,3 +13,20 @@ navbarToggle.addEventListener('click', function() {
     navbarToggle.setAttribute('aria-expanded', 'true');
   }
 });
+// Kiểm tra sự tồn tại của phần tử HTML với id là 'myElement'
+var myElement = document.getElementById('myElement');
+const test = document.cookie.split('; ').find(row => row.startsWith('id=')).split('=')[1];
+if (test!=null) {
+// Gán giá trị cookie vào thuộc tính innerHTML của phần tử HTML
+  
+  myElement.innerHTML = `
+  <form action="/api/menu/items/dangxuat" method="get">
+    <button class="nav-item nav-link text-white">Xin chào .Đăng xuất!</button>
+  </form>
+  `
+}
+// else{
+//   myElement.innerHTML = `
+//   <a class="nav-item nav-link" href="./dangnhap">Đăng nhập/Đăng kí</a>
+//   `
+// }

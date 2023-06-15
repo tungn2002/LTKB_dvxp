@@ -8,7 +8,7 @@ import { AppDataSource } from "../data-source";
 import { Photo } from "../entity/Photo";
 import { validate } from "class-validator";
 import { Ve } from "../entity/Ve";
-import { Khachhang } from "../entity/Khachhang";
+import { Khachhang} from "../entity/Khachhang";
 import { Ghe } from "../entity/Ghe";
 import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
@@ -16,7 +16,7 @@ import { Phim } from "../entity/Phim";
 import { User } from "../entity/User";
 //import * as session from 'express-session';
 
-
+const cookieParser = require('cookie-parser');
 //
 
 //validate
@@ -32,6 +32,7 @@ export const itemsRouter = express.Router();
 //put
 const methodOverride=require("method-override");
 itemsRouter.use(methodOverride("_method"));
+itemsRouter.use(cookieParser());
 /**
  * Controller Definitions
  */
@@ -65,7 +66,7 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
         // Nếu email và password trùng với DB thì cho phép đăng nhập
         const kh = await AppDataSource.manager.findOne(Khachhang, { where: { idkh: user.idkh} });
         const iduser= kh.idkh;
-       
+        res.cookie(`id`, iduser);
 
         return res.render("items/user/trangchu.ejs", { user: user });
       }
@@ -80,6 +81,54 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
+itemsRouter.get("/dangxuat", async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('id');
+    res.render("items/user/trangchu.ejs");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+//đăng kí----------------------------------
+itemsRouter.get("/dangky", async (req: Request, res: Response) => {
+  try {
+    res.render("items/user/dangki.ejs");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
+  try {
+    const Khac = new Khachhang();
+    const user = new User();
+    Khac.tenkh = req.body.name;
+    Khac.gioitinh = req.body.checkbox;
+    Khac.ngaysinh = req.body.ns;
+    Khac.sodienthoai = req.body.sdt;
+    Khac.diachi = req.body.diachi;
+    user.email = req.body.email;
+    user.password = req.body.pass;
+    console.log(req.body.name, req.body.checkbox, req.body.ns, req.body.sdt, req.body.diachi, req.body.email, req.body.pass);
+    const errors = await validate(Khac)
+    const errorss = await validate(user)
+    if (errors.length > 0 || errorss.length > 0) {
+      return res.render("items/user/dangki.ejs", { message:"Phải nhập đúng"});
+    } else {
+        await AppDataSource.manager.save(Khac);
+        const results = await AppDataSource.manager.query("SELECT * FROM User WHERE id = (SELECT MAX(id) FROM User);");
+        user.idkh = results.idkh;
+        await AppDataSource.manager.save(user);
+        res.redirect('/api/menu/items/trangchu');
+    }    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+
+
+
 // itemsRouter.post('/login', async (req: Request, res: Response) => {
 //   const email = req.body.email;
 //   const password = req.body.password;
