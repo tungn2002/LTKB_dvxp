@@ -15,13 +15,18 @@ export class Ve {
 
     @Column()
     @IsNotEmpty()
-    idkh: number
-
+    idkh: number 
+    
+    @Column({ type: 'date', default: () => 'CURRENT_DATE' }) // chỉnh giá trị mặc định là ngày hiện tại của máy tính
+    @IsDate()
+    @IsNotEmpty()
+    ngaymua:Date
+    
     @OneToOne(() => Ghe, { onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn({ name: "idghe" })
     ghe: Ghe;
 
-    
+   
     @ManyToOne(() => Khachhang, khachhang => khachhang.ve, { onDelete: "CASCADE", onUpdate: "CASCADE" })
     @JoinColumn({ name: "idkh" })
     khachhang: Khachhang;

@@ -182,6 +182,10 @@ itemsRouter.post("/createve", async (req: Request, res: Response) => {
     const ve = new Ve()
     ve.idkh = req.body.idkh;
     ve.idghe =req.body.idghe;
+    
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    ve.ngaymua=new Date(today);
     await AppDataSource.manager.save(ve);
     res.redirect('/api/menu/items/dsve');
   } catch (e) {
@@ -222,6 +226,9 @@ itemsRouter.put("/updateve/:id", async (req: Request, res: Response) => {
     })
     veToUpdate.idkh = req.body.idkh;
     veToUpdate.idghe =req.body.idghe;
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    veToUpdate.ngaymua=new Date(today);
     await veRepository.save(veToUpdate)
     res.redirect('/api/menu/items/dsve');
   } catch (e) {

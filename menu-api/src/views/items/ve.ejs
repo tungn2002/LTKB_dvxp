@@ -30,6 +30,7 @@
                                     <th scope="col" width="50">id</th>
                                     <th scope="col">Khách hàng</th>
                                     <th scope="col">Ghế</th>
+                                    <th scope="col">Ngày mua</th>
                                     <th scope="col">Tùy chọn</th>
 
                                 </tr>
@@ -41,6 +42,7 @@
                                     <th scope="row"><%= p.idve %></th>
                                     <td><%= p.idkh %></td>
                                     <td><%= p.idghe %></td>
+                                    <td><%= p.ngaymua %></td>
                                     <td>  <form action="/api/menu/items/editve/<%= p.idve %>" method="get"><button class="btn btn-primary">Sửa</button></form>  
                                         <form action="/api/menu/items/deleteve/<%= p.idve %>?_method=delete" method="POST"><button class="btn btn-primary">Xóa</button></form></td>
                                 </tr>
