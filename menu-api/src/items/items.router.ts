@@ -510,7 +510,52 @@ itemsRouter.post("/datghe", async (req: Request, res: Response) => {
   }
 });
 
-//
+//thongke
+itemsRouter.get("/thongke", async (req: Request, res: Response) => {
+  try {
+    const items= await AppDataSource.manager.find(Phim);
+
+    return res.render("items/thongkedoanhthu", {list:items});
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//thong ke all
+itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
+  try {
+    const results = await AppDataSource.manager.query("SELECT phim.idphim, phim.tenphim, SUM(ghe.giaghe) AS tongdoanhthu, COUNT(ve.idve) AS tongsove FROM phim INNER JOIN lichchieu ON phim.idphim = lichchieu.idphim INNER JOIN ghe ON ghe.idphong = lichchieu.idphong INNER JOIN ve ON ve.idghe = ghe.idghe GROUP BY phim.idphim, phim.tenphim");
+
+    return res.render("items/thongkedoanhthuall", {list:results});
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//thongketk
+itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
+  try {
+    const ngayA = req.body.date1; // Ngay A truyen tu client
+    const ngayB = req.body.date2; // Ngay B truyen tu client
+    const maPhim = req.body.idphim; // Ma phim truyen tu client
+
+    const results = await AppDataSource.manager.query(`
+      SELECT lichchieu.ngaychieu, SUM(ghe.giaghe) AS tongdoanhthu 
+      FROM lichchieu 
+      INNER JOIN ghe ON ghe.idphong = lichchieu.idphong 
+      INNER JOIN ve ON ve.idghe = ghe.idghe 
+      WHERE lichchieu.idphim = ${maPhim} AND lichchieu.ngaychieu BETWEEN '${ngayA}' AND '${ngayB}'
+      GROUP BY lichchieu.ngaychieu
+    `);
+
+    return res.render("items/thongkedoanhthutk", {list:results});
+
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+
 itemsRouter.get("/addd", async (req: Request, res: Response) => {
   try {
 

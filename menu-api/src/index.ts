@@ -35,6 +35,7 @@ app.set("views","./src/views");//chi ra thu muc chua view
 app.use('/',express.static('public'));//ket noi css trong file public
 
 
+
 //
 //app.use(errorHandler);
 //app.use(notFoundHandler);
