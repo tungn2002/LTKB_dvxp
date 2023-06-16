@@ -17,6 +17,7 @@ export class Ghe {
     tenghe: string
 
     @Column()
+    @IsNumber()
     @IsNotEmpty()
     idphong: number
 

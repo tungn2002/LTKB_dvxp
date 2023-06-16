@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne } from "typeorm"
-import { IsNotEmpty,IsISO8601 , IsDate  } from "class-validator";
+import { IsNotEmpty,IsISO8601 , IsDate, IsNumber  } from "class-validator";
 import { Ghe } from './Ghe'
 import { Khachhang } from './Khachhang'
 
@@ -10,10 +10,12 @@ export class Ve {
     idve: number
 
     @Column()
+    @IsNumber()
     @IsNotEmpty()
     idghe: number
 
     @Column()
+    @IsNumber()
     @IsNotEmpty()
     idkh: number 
     

@@ -169,7 +169,7 @@ itemsRouter.get("/addve", async (req: Request, res: Response) => {
     .where("ghe.idghe NOT IN (SELECT idghe FROM Ve)")
     .getMany();
 
-    return res.render("items/addve", {list:items,list2:ghedoichua,message:"null"});
+    return res.render("items/addve", {list:items,list2:ghedoichua,message:req.query.message || "null"});
 
 
   } catch (e) {
@@ -180,14 +180,24 @@ itemsRouter.get("/addve", async (req: Request, res: Response) => {
 itemsRouter.post("/createve", async (req: Request, res: Response) => {
   try {
     const ve = new Ve()
-    ve.idkh = req.body.idkh;
-    ve.idghe =req.body.idghe;
+    ve.idkh = parseInt(req.body.idkh, 10);
+    ve.idghe =parseInt(req.body.idghe, 10);
     
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     ve.ngaymua=new Date(today);
-    await AppDataSource.manager.save(ve);
-    res.redirect('/api/menu/items/dsve');
+
+
+    const errors = await validate(ve)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/addve?message=Phải nhập đúng và đầy đủ ký tự');
+
+    } else {
+      await AppDataSource.manager.save(ve);
+      res.redirect('/api/menu/items/dsve');
+    }
+
+    
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -207,7 +217,7 @@ itemsRouter.get("/editve/:id", async (req: Request, res: Response) => {
     .where("ghe.idghe NOT IN (SELECT idghe FROM Ve) OR ghe.idghe = :idghe", { idghe: item.idghe })
     .getMany();
     //
-  return res.render("items/editve", { list:items,list2:ghedoichua,list3: [item],message:"null"});
+  return res.render("items/editve", { list:items,list2:ghedoichua,list3: [item],message:req.query.message || "null"});
     
   } catch (e) {
     res.status(500).send(e.message);
@@ -224,13 +234,24 @@ itemsRouter.put("/updateve/:id", async (req: Request, res: Response) => {
     const veToUpdate = await veRepository.findOneBy({
         idve: idz,
     })
-    veToUpdate.idkh = req.body.idkh;
-    veToUpdate.idghe =req.body.idghe;
+    veToUpdate.idkh = parseInt(req.body.idkh, 10);
+    veToUpdate.idghe =parseInt(req.body.idghe, 10);
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
     veToUpdate.ngaymua=new Date(today);
-    await veRepository.save(veToUpdate)
-    res.redirect('/api/menu/items/dsve');
+
+
+    const errors = await validate(veToUpdate)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/editve/'+idz+'?message=Phải nhập đúng và đầy đủ ký tự');
+
+    } else {
+      
+      await veRepository.save(veToUpdate)
+      res.redirect('/api/menu/items/dsve');
+    }
+
+
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -269,8 +290,7 @@ itemsRouter.get("/addghe", async (req: Request, res: Response) => {
     const items= await AppDataSource.manager.find(Phong);
 
 
-    return res.render("items/addghe", {list:items,message:"null"});
-
+    return res.render("items/addghe", {list:items,message:req.query.message || "null"});
 
   } catch (e) {
     res.status(500).send(e.message);
@@ -282,11 +302,17 @@ itemsRouter.post("/createghe", async (req: Request, res: Response) => {
     const ghe = new Ghe(); 
 
     ghe.tenghe = req.body.tenghe;
-    ghe.idphong = req.body.idphong;
-    ghe.giaghe = req.body.giaghe;
-    await AppDataSource.manager.save(ghe);
+    ghe.idphong = parseInt(req.body.idphong, 10);
+    ghe.giaghe = parseFloat(req.body.giaghe);
+    const errors = await validate(ghe)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/addghe?message=Phải nhập đúng và đầy đủ ký tự');
 
-    res.redirect('/api/menu/items/dsghe');
+    } else {
+      await AppDataSource.manager.save(ghe);
+      res.redirect('/api/menu/items/dsghe');
+    }
+    
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -301,7 +327,7 @@ itemsRouter.get("/editghe/:id", async (req: Request, res: Response) => {
 
 
     //
-  return res.render("items/editghe", { list:[item],list2:items,message:"null"});
+  return res.render("items/editghe", { list:[item],list2:items,message:req.query.message || "null"});
     
   } catch (e) {
     res.status(500).send(e.message);
@@ -319,10 +345,19 @@ itemsRouter.put("/updateghe/:id", async (req: Request, res: Response) => {
         idghe: idz,
     })
     gheToUpdate.tenghe = req.body.tenghe;
-    gheToUpdate.idphong =req.body.idphong;
-    gheToUpdate.giaghe =req.body.giaghe;
-    await gheRepository.save(gheToUpdate)
-    res.redirect('/api/menu/items/dsghe');
+    gheToUpdate.idphong =parseInt(req.body.idphong, 10);
+    gheToUpdate.giaghe =parseFloat(req.body.giaghe);
+
+    const errors = await validate(gheToUpdate)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/editghe/'+idz+'?message=Phải nhập đúng và đầy đủ ký tự');
+
+    } else {
+      await gheRepository.save(gheToUpdate)
+      res.redirect('/api/menu/items/dsghe');
+    }
+
+    
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -358,12 +393,12 @@ itemsRouter.get("/dslichchieu", async (req: Request, res: Response) => {
 //trang them ve
 itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
   try {
-    const items= await AppDataSource.manager.find(Phong);
     const item2= await AppDataSource.manager.find(Phim);
+    const items = await AppDataSource.manager.query("SELECT phong.* FROM phong LEFT JOIN lichchieu ON phong.idphong = lichchieu.idphong WHERE lichchieu.idphong IS NULL;");
 
 
 
-    return res.render("items/addlichchieu", {list:items,list2:item2,message:"null"});
+    return res.render("items/addlichchieu", {list:items,list2:item2,message:req.query.message || "null"});
 
 
   } catch (e) {
@@ -374,13 +409,22 @@ itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
 itemsRouter.post("/createlichchieu", async (req: Request, res: Response) => {
   try {
     const lichchieu = new Lichchieu()
-    lichchieu.idphong =req.body.idphong;
-    lichchieu.idphim =req.body.idphim;
+    lichchieu.idphong =parseInt(req.body.idphong, 10);
+    lichchieu.idphim =parseInt(req.body.idphim, 10);
     lichchieu.ngaychieu = new Date(req.body.ngaychieu);
     lichchieu.giochieu =req.body.giochieu;
     lichchieu.gioketthuc = req.body.gioketthuc;
+    const errors = await validate(lichchieu)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/addlichchieu?message=Phải nhập đúng và đầy đủ ký tự');//+error.length neumuon hien so loi
+
+    } else {
     await AppDataSource.manager.save(lichchieu);
     res.redirect('/api/menu/items/dslichchieu');
+    }
+
+
+
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -397,7 +441,7 @@ itemsRouter.get("/editlichchieu/:id", async (req: Request, res: Response) => {
     const items= await AppDataSource.manager.find(Phong);
 
 
-  return res.render("items/editlichchieu", {list:items,list2:item3,list3: [item],message:"null"});
+  return res.render("items/editlichchieu", {list:items,list2:item3,list3: [item],message:req.query.message || "null"});
     
   } catch (e) {
     res.status(500).send(e.message);
@@ -414,13 +458,23 @@ itemsRouter.put("/updatelichchieu/:id", async (req: Request, res: Response) => {
     const lichchieuToUpdate = await lichchieuRepository.findOneBy({
         idlichchieu: idz,
     })
-    lichchieuToUpdate.idphim =req.body.idphim;
-    lichchieuToUpdate.idphong =req.body.idphong;
+    lichchieuToUpdate.idphim =parseInt(req.body.idphim, 10);
+    lichchieuToUpdate.idphong =parseInt(req.body.idphong, 10);
     lichchieuToUpdate.ngaychieu = new Date(req.body.ngaychieu);
     lichchieuToUpdate.giochieu =req.body.giochieu;
     lichchieuToUpdate.gioketthuc = req.body.gioketthuc;
-    await lichchieuRepository.save(lichchieuToUpdate)
-    res.redirect('/api/menu/items/dslichchieu');
+    const errors = await validate(lichchieuToUpdate)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/editlichchieu/'+idz+'?message=Phải nhập đúng và đầy đủ ký tự');
+
+    } else {
+      await lichchieuRepository.save(lichchieuToUpdate)
+        res.redirect('/api/menu/items/dslichchieu');
+    }
+
+
+
+  
   } catch (e) {
     res.status(500).send(e.message);
   }
@@ -501,8 +555,8 @@ itemsRouter.get("/chonghe/:id", async (req: Request, res: Response) => {
 itemsRouter.post("/datghe", async (req: Request, res: Response) => {
   try {
     const ve = new Ve()
-    ve.idkh = req.body.idkh;
-    ve.idghe =req.body.idghe;
+    ve.idkh = parseInt(req.body.idkh, 10);
+    ve.idghe =parseInt(req.body.idghe, 10);
     await AppDataSource.manager.save(ve);
     //res.redirect('/api/menu/items/dsve');
   } catch (e) {

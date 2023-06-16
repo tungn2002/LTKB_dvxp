@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne,OneToOne, JoinColumn } from "typeorm"
-import { IsNotEmpty,IsISO8601 , IsDate  } from "class-validator";
+import { IsNotEmpty,IsISO8601 , IsDate, IsNumber, Matches  } from "class-validator";
 import { Phong } from './Phong'
 import { Phim } from './Phim'
 
@@ -10,10 +10,12 @@ export class Lichchieu {
     idlichchieu: number
 
     @Column()
+    @IsNumber()
     @IsNotEmpty()
     idphong: number
 
     @Column()
+    @IsNumber()
     @IsNotEmpty()
     idphim: number
 
@@ -23,11 +25,12 @@ export class Lichchieu {
     ngaychieu: Date
 
     @Column({ type: 'time' })
-    @IsISO8601()
+    @Matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)
     @IsNotEmpty()
     giochieu: Date
 
     @Column({ type: 'time' })
+    @Matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)
     @IsNotEmpty()
     gioketthuc: Date
   

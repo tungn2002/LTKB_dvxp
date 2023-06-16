@@ -45,7 +45,10 @@
                     <button type="submit" class="btn btn-primary">Sửa</button>
                 </form>
                 <% if (message != "null") { %>
-                    <p>Lỗi: <%= message %></p>
+                    <div class="alert alert-danger" role="alert">
+                        Lỗi: <%= message %>
+                      </div>
+                    
                  <% } %>
             </div>
         </div>
