@@ -8,7 +8,7 @@ import { AppDataSource } from "../data-source";
 import { Photo } from "../entity/Photo";
 import { validate } from "class-validator";
 import { Ve } from "../entity/Ve";
-import { Khachhang} from "../entity/Khachhang";
+import { Khachhang } from "../entity/Khachhang";
 import { Ghe } from "../entity/Ghe";
 import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
@@ -103,21 +103,20 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
     const Khac = new Khachhang();
     const user = new User();
     Khac.tenkh = req.body.name;
-    Khac.gioitinh = req.body.checkbox;
-    Khac.ngaysinh = req.body.ns;
+    Khac.gioitinh = req.body.gioitinh;
+    Khac.ngaysinh =  new Date(req.body.ngaysinh);
     Khac.sodienthoai = req.body.sdt;
     Khac.diachi = req.body.diachi;
     user.email = req.body.email;
     user.password = req.body.pass;
-    console.log(req.body.name, req.body.checkbox, req.body.ns, req.body.sdt, req.body.diachi, req.body.email, req.body.pass);
     const errors = await validate(Khac)
     const errorss = await validate(user)
-    if (errors.length > 0 || errorss.length > 0) {
+    if (errors.length > 0 ||errorss.length>0) {
       return res.render("items/user/dangki.ejs", { message:"Phải nhập đúng"});
     } else {
         await AppDataSource.manager.save(Khac);
-        const results = await AppDataSource.manager.query("SELECT * FROM User WHERE id = (SELECT MAX(id) FROM User);");
-        user.idkh = results.idkh;
+        const results = await AppDataSource.manager.query("SELECT * FROM khachhang WHERE idkh = (SELECT MAX(idkh) FROM khachhang);");
+        user.idkh = results[0].idkh;
         await AppDataSource.manager.save(user);
         res.redirect('/api/menu/items/trangchu');
     }    
@@ -370,7 +369,7 @@ itemsRouter.post("/createlichchieu", async (req: Request, res: Response) => {
     const lichchieu = new Lichchieu()
     lichchieu.idphong =req.body.idphong;
     lichchieu.idphim =req.body.idphim;
-    lichchieu.ngaychieu = req.body.ngaychieu;
+    lichchieu.ngaychieu = new Date(req.body.ngaychieu);
     lichchieu.giochieu =req.body.giochieu;
     lichchieu.gioketthuc = req.body.gioketthuc;
     await AppDataSource.manager.save(lichchieu);
@@ -410,7 +409,7 @@ itemsRouter.put("/updatelichchieu/:id", async (req: Request, res: Response) => {
     })
     lichchieuToUpdate.idphim =req.body.idphim;
     lichchieuToUpdate.idphong =req.body.idphong;
-    lichchieuToUpdate.ngaychieu = req.body.ngaychieu;
+    lichchieuToUpdate.ngaychieu = new Date(req.body.ngaychieu);
     lichchieuToUpdate.giochieu =req.body.giochieu;
     lichchieuToUpdate.gioketthuc = req.body.gioketthuc;
     await lichchieuRepository.save(lichchieuToUpdate)

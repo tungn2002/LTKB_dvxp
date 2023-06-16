@@ -32,7 +32,6 @@ export class Khachhang {
     diachi:string
     
     @Column()
-    @IsMobilePhone('vi-VN')
     @IsNotEmpty()
     sodienthoai:string
 
