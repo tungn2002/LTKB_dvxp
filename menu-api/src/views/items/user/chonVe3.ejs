@@ -12,20 +12,39 @@
                             <div class="modal-body" style="margin-left: 10px;">
                                 <% var myArray = []; 
                                 for (let p2 of list2){
-                                    myArray.push(p2.idghe)
+                                  myArray.push(p2.idghe)
                                 }
                                 %>
-                                <% for (let p of list)  {%>
-                                    <% if(!myArray.includes(p.idghe)){ %>
-                                    <form action="/api/menu/items/datghe" method="post">
-                                        <input type="text" name="idghe" value="<%= p.idghe %>" style="display: none;">
-                                        <button class="btn btn-secondary tt" style="margin: 5px;" type="submit" ><%= p.tenghe %></button>
-                                    </form>
-                                    <% }else{%>
-                                        <button class="btn btn-danger tt" style="margin: 5px;" type="" disabled><%= p.tenghe %></button>
-                                        <%}%>
-                                <% } %> 
-                            </div>
+                                <% const groups = list.reduce((result, item) => {
+                                       const firstChar = item.tenghe.charAt(0).toUpperCase();
+                                       if (!result[firstChar]) {
+                                         result[firstChar] = [];
+                                       }
+                                       result[firstChar].push(item);
+                                       return result;
+                                     }, {});
+                                   Object.keys(groups).sort().forEach((key) => {
+                                       const group = groups[key];
+                                       %>
+                                       <div class="d-flex align-items-center mb-3">
+                                         <div class="group-title mr-2 p-1"><%= key %></div>
+                                         <div class="btn-group" role="group">
+                                           <% group.forEach((item) => { %>
+                                             <% if(!myArray.includes(item.idghe)){ %>
+                                               <form action="/api/menu/items/datghe" method="post">
+                                                 <input type="text" name="idghe" value="<%= item.idghe %>" style="display: none;">
+                                                 <button class="btn btn-secondary tt" type="submit"><%= item.tenghe %></button>
+                                               </form>
+                                             <% } else { %>
+                                               <button class="btn btn-danger tt" type="" disabled><%= item.tenghe %></button>
+                                             <% } %>
+                                           <% });
+                                           %>
+                                         </div>
+                                       </div>
+                                   <% });
+                                %>
+                              </div>
                         </div>
                         
                         <style>
