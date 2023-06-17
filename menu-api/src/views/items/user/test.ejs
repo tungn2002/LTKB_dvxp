@@ -5,7 +5,18 @@
 <body>
 
 <h1>This is a Heading</h1>
+<%=query%>
+
 <p>This is a paragraph.</p>
-<%=sl%>
+<%=message%>
+------------
+<% for (let p of list)  {%>
+    <p>
+        idSP: <b><%= p.idlichchieu %></b> 
+
+    </p>
+    <hr>
+    
+<% } %>
 </body>
 </html>

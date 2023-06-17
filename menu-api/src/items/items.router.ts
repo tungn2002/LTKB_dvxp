@@ -14,6 +14,7 @@ import { Phong } from "../entity/Phong";
 import { Lichchieu } from "../entity/Lichchieu";
 import { Phim } from "../entity/Phim";
 import { User } from "../entity/User";
+import { Brackets } from "typeorm";
 //import * as session from 'express-session';
 
 const cookieParser = require('cookie-parser');
@@ -406,28 +407,32 @@ itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
   }
 });
 //them lichchieu
+
 itemsRouter.post("/createlichchieu", async (req: Request, res: Response) => {
   try {
-    const lichchieu = new Lichchieu()
-    lichchieu.idphong =parseInt(req.body.idphong, 10);
-    lichchieu.idphim =parseInt(req.body.idphim, 10);
-    lichchieu.ngaychieu = new Date(req.body.ngaychieu);
-    lichchieu.giochieu =req.body.giochieu;
-    lichchieu.gioketthuc = req.body.gioketthuc;
-    const errors = await validate(lichchieu)
-    if (errors.length > 0) {
-      res.redirect('/api/menu/items/addlichchieu?message=Phải nhập đúng và đầy đủ ký tự');//+error.length neumuon hien so loi
+    
+      const lichchieu = new Lichchieu()
+      lichchieu.idphong =parseInt(req.body.idphong, 10);
+      lichchieu.idphim =parseInt(req.body.idphim, 10);
+      lichchieu.ngaychieu = new Date(req.body.ngaychieu);
+      lichchieu.giochieu =req.body.giochieu;
+      lichchieu.gioketthuc = req.body.gioketthuc;
+      
+      const errors = await validate(lichchieu)
+      if (errors.length > 0) {      
+        //res.redirect('/api/menu/items/addlichchieu?message=Trùng giờ chiếu');
 
-    } else {
-    await AppDataSource.manager.save(lichchieu);
-    res.redirect('/api/menu/items/dslichchieu');
+        res.redirect('/api/menu/items/addlichchieu?message=Phải nhập đúng và đầy đủ ký tự');//+error.length neumuon hien so loi
+      }
+      else {
+        await AppDataSource.manager.save(lichchieu);
+        res.redirect('/api/menu/items/dslichchieu');
+      }
     }
-
-
-
-  } catch (e) {
+  catch (e) {
     res.status(500).send(e.message);
   }
+  
 });
 //trang sua lichchieu
 
