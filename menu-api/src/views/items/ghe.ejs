@@ -15,10 +15,12 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-            <i class="fas fa-user me-2"></i>Admin
-            </ul>
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+            <i class="fas fa-user me-2"></i>
+            <li class="nav-item">Admin</li>
+          </ul>
         </div>
+        
     </nav>
 
     <div class="container-fluid px-4">
@@ -43,17 +45,50 @@
                             <td><%= p.tenghe %></td>
                             <td><%= p.idphong %></td>
                             <td><%= p.giaghe %></td>
-                            <td>  <form action="/api/menu/items/editghe/<%= p.idghe %>" method="get"><button class="btn btn-primary">Sửa</button></form>  
-                                <form action="/api/menu/items/deleteghe/<%= p.idghe %>?_method=delete" method="POST"><button class="btn btn-primary">Xóa</button></form></td>
-                        </tr>
+                              <td>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                  <div> <!-- Cột 1 -->
+                                    <form class="mx-1" action="/api/menu/items/editghe/<%= p.idghe %>" method="get" style="display: inline-block;">
+                                      <button class="btn btn-primary">Sửa</button>
+                                    </form>
+                                    <form class="mx-1" action="/api/menu/items/deleteghe/<%= p.idghe %>?_method=delete" method="POST" style="display: inline-block;">
+                                      <button class="btn btn-danger">Xóa</button>
+                                    </form>
+                                  </div>
+                                  <div> <!-- Cột 2 -->
+                                    <!-- Thêm nội dung tùy chọn vào đây -->
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
                         <% } %>
 
                     </tbody>
-                </table>
-                <form action="/api/menu/items/addghe" method="get">
+                </table><form class="d-flex justify-content-end" action="/api/menu/items/addghe" method="get">
                         <button type="submit" class="btn btn-primary">Thêm</button>
                 </form>
 
+<!-- Hiển thị các nút điều hướng phân trang -->
+<nav aria-label="Page navigation example">
+  <ul class="pagination">
+    <% if (currentPage > 1) { %>
+      <li class="page-item"><a class="page-link" href="?page=<%= currentPage - 1 %>">Trang trước</a></li>
+    <% } %>
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <% if (i === currentPage) { %>
+        <li class="page-item active"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+      <% } else { %>
+        <li class="page-item"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+      <% } %>
+    <% } %>
+    <% if (currentPage < totalPages) { %>
+      <li class="page-item"><a class="page-link" href="?page=<%= currentPage + 1 %>">Trang tiếp</a></li>
+    <% } %>
+  </ul>
+</nav>
+
+
+                
             </div>
         </div>
 

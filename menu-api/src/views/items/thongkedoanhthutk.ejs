@@ -15,10 +15,12 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <i class="fas fa-user me-2"></i>Admin
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+                      <i class="fas fa-user me-2"></i>
+                      <li class="nav-item">Admin</li>
                     </ul>
-                </div>
+                  </div>
+                  
             </nav>
             
             
@@ -47,7 +49,24 @@
 
                     </tbody>
                 </table>
-
+<!-- Hiển thị các nút điều hướng phân trang -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+      <% if (currentPage > 1) { %>
+        <li class="page-item"><a class="page-link" href="?page=<%= currentPage - 1 %>">Trang trước</a></li>
+      <% } %>
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <% if (i === currentPage) { %>
+          <li class="page-item active"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+        <% } else { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+        <% } %>
+      <% } %>
+      <% if (currentPage < totalPages) { %>
+        <li class="page-item"><a class="page-link" href="?page=<%= currentPage + 1 %>">Trang tiếp</a></li>
+      <% } %>
+    </ul>
+  </nav>
             </div>
         </div>
 

@@ -153,12 +153,47 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
 //trang quan ly ve
 itemsRouter.get("/dsve", async (req: Request, res: Response) => {
   try {
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 5;
+
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+    const items = await AppDataSource.manager.find(Ve, {
+      skip: startIndex,
+      take: limit,
+    });
+
+    // Tổng số bản ghi
+    const total = await AppDataSource.manager.count(Ve);
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Render trang EJS với danh sách vé, số trang và trang hiện tại
+    res.render("items/ve", {
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+/*
+itemsRouter.get("/dsve", async (req: Request, res: Response) => {
+  try {
     const items= await AppDataSource.manager.find(Ve);
     res.render("items/ve",{list:items});
   } catch (e) {
     res.status(500).send(e.message);
   }
-});
+});*/
 
 //trang them ve
 itemsRouter.get("/addve", async (req: Request, res: Response) => {
@@ -277,13 +312,48 @@ itemsRouter.delete("/deleteve/:id", async (req: Request, res: Response) => {
 //trang quan ly ghe
 itemsRouter.get("/dsghe", async (req: Request, res: Response) => {
   try {
+   // Số lượng bản ghi hiển thị trên mỗi trang
+   const limit = 5;
+
+   // Trang hiện tại
+   const page = parseInt(req.query.page as string) || 1;
+
+   // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+   const startIndex = (page - 1) * limit;
+   const endIndex = page * limit;
+
+   // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+   const items = await AppDataSource.manager.find(Ghe, {
+     skip: startIndex,
+     take: limit,
+   });
+
+   // Tổng số bản ghi
+   const total = await AppDataSource.manager.count(Ghe);
+
+   // Số trang
+   const totalPages = Math.ceil(total / limit);
+
+   // Render trang EJS với danh sách vé, số trang và trang hiện tại
+   res.render("items/ghe", {
+     list: items,
+     totalPages,
+     currentPage: page,
+   });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+/*
+itemsRouter.get("/dsghe", async (req: Request, res: Response) => {
+  try {
     const items= await AppDataSource.manager.find(Ghe);
     res.render("items/ghe",{list:items});
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
-
+*/
 //trang them ghe
 itemsRouter.get("/addghe", async (req: Request, res: Response) => {
   try {
@@ -384,13 +454,48 @@ itemsRouter.delete("/deleteghe/:id", async (req: Request, res: Response) => {
 //trang quan ly lichchieu
 itemsRouter.get("/dslichchieu", async (req: Request, res: Response) => {
   try {
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 5;
+
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+    const items = await AppDataSource.manager.find(Lichchieu, {
+      skip: startIndex,
+      take: limit,
+    });
+
+    // Tổng số bản ghi
+    const total = await AppDataSource.manager.count(Lichchieu);
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Render trang EJS với danh sách vé, số trang và trang hiện tại
+    res.render("items/lichchieu", {
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+/*
+itemsRouter.get("/dslichchieu", async (req: Request, res: Response) => {
+  try {
     const items= await AppDataSource.manager.find(Lichchieu);
     res.render("items/lichchieu",{list:items});
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
-
+*/
 //trang them ve
 itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
   try {
@@ -583,6 +688,39 @@ itemsRouter.get("/thongke", async (req: Request, res: Response) => {
 //thong ke all
 itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
   try {
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 5;
+
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách kết quả từ cơ sở dữ liệu
+    const results = await AppDataSource.manager.query("SELECT phim.idphim, phim.tenphim, SUM(ghe.giaghe) AS tongdoanhthu, COUNT(ve.idve) AS tongsove FROM phim INNER JOIN lichchieu ON phim.idphim = lichchieu.idphim INNER JOIN ghe ON ghe.idphong = lichchieu.idphong INNER JOIN ve ON ve.idghe = ghe.idghe GROUP BY phim.idphim, phim.tenphim");
+
+    // Tổng số bản ghi
+    const total = results.length;
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Hiển thị danh sách kết quả trên trang hiện tại
+    const items = results.slice(startIndex, endIndex);
+    res.render("items/thongkedoanhthuall", {
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+/*
+itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
+  try {
     const results = await AppDataSource.manager.query("SELECT phim.idphim, phim.tenphim, SUM(ghe.giaghe) AS tongdoanhthu, COUNT(ve.idve) AS tongsove FROM phim INNER JOIN lichchieu ON phim.idphim = lichchieu.idphim INNER JOIN ghe ON ghe.idphong = lichchieu.idphong INNER JOIN ve ON ve.idghe = ghe.idghe GROUP BY phim.idphim, phim.tenphim");
 
     return res.render("items/thongkedoanhthuall", {list:results});
@@ -590,8 +728,41 @@ itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
   } catch (e) {
     res.status(500).send(e.message);
   }
-});
+});*/
 //thongketk
+itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
+  try {
+    const ngayA = req.body.date1; // Ngay A truyen tu client
+    const ngayB = req.body.date2; // Ngay B truyen tu client
+    const maPhim = req.body.idphim; // Ma phim truyen tu client
+
+    const results = await AppDataSource.manager.query(`
+      SELECT lichchieu.ngaychieu, SUM(ghe.giaghe) AS tongdoanhthu 
+      FROM lichchieu 
+      INNER JOIN ghe ON ghe.idphong = lichchieu.idphong 
+      INNER JOIN ve ON ve.idghe = ghe.idghe 
+      WHERE lichchieu.idphim = ${maPhim} AND lichchieu.ngaychieu BETWEEN '${ngayA}' AND '${ngayB}'
+      GROUP BY lichchieu.ngaychieu
+    `);
+
+    const limit = 5; // Số lượng bản ghi hiển thị trên mỗi trang
+    const page = parseInt(req.query.page as string) || 1; // Trang hiện tại
+    const startIndex = (page - 1) * limit; // Vị trí bắt đầu của bản ghi trên trang hiện tại
+    const endIndex = page * limit; // Vị trí kết thúc của bản ghi trên trang hiện tại
+    const total = results.length; // Tổng số bản ghi
+    const totalPages = Math.ceil(total / limit); // Số trang
+    const items = results.slice(startIndex, endIndex); // Danh sách kết quả trên trang hiện tại
+
+    return res.render("items/thongkedoanhthutk", {
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+/*
 itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
   try {
     const ngayA = req.body.date1; // Ngay A truyen tu client
@@ -613,7 +784,7 @@ itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
-
+*/
 
 itemsRouter.get("/addd", async (req: Request, res: Response) => {
   try {
