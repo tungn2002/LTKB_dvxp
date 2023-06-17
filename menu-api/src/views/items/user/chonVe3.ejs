@@ -18,7 +18,6 @@
                                 <% for (let p of list)  {%>
                                     <% if(!myArray.includes(p.idghe)){ %>
                                     <form action="/api/menu/items/datghe" method="post">
-                                        <input type="text" name="idkh" value="idkhachhang" style="display: none;">
                                         <input type="text" name="idghe" value="<%= p.idghe %>" style="display: none;">
                                         <button class="btn btn-secondary tt" style="margin: 5px;" type="submit" ><%= p.tenghe %></button>
                                     </form>
@@ -82,6 +81,8 @@
                                     button.classList.add('selectedd');
                                 });
                                 });
+                                
+
                         </script>
                     </div>
                 </div>

@@ -665,10 +665,10 @@ itemsRouter.get("/chonghe/:id", async (req: Request, res: Response) => {
 itemsRouter.post("/datghe", async (req: Request, res: Response) => {
   try {
     const ve = new Ve()
-    ve.idkh = parseInt(req.body.idkh, 10);
+    ve.idkh = parseInt(req.cookies.id, 10);
     ve.idghe =parseInt(req.body.idghe, 10);
     await AppDataSource.manager.save(ve);
-    //res.redirect('/api/menu/items/dsve');
+    res.redirect('/api/menu/items/trangchu');
   } catch (e) {
     res.status(500).send(e.message);
   }
