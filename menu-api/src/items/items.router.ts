@@ -39,15 +39,18 @@ itemsRouter.use(cookieParser());
  */
 //
 
-//truong
-// đăng nhập
+//=====================TRƯỜNG=======================
+// ====Đăng nhập=====
 itemsRouter.get("/trangchu", async (req: Request, res: Response) => {
   try {
-    res.render("items/user/trangchu.ejs");
+    const items = await AppDataSource.manager.query("SELECT * FROM phim");
+    //khi chạy trang chủ thì sẽ chuyền vào list. list này chưa ds phim
+    return res.render("items/user/trangchu.ejs", { list: items });
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
+//========================Đăng nhập==========================
 itemsRouter.get("/dangnhap", async (req: Request, res: Response) => {
   try {
     res.render("items/user/login.ejs");
@@ -61,7 +64,7 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
   try {
     // Kiểm tra xem email và password có trong DB không
     const user = await AppDataSource.manager.findOne(User, { where: { email: email, password: password } });
-
+    const items = await AppDataSource.manager.query("SELECT * FROM phim");
     if (user) {//kiem tra xem nola admin hay la khach hang
       if(user.idql==null){
         // Nếu email và password trùng với DB thì cho phép đăng nhập
@@ -69,7 +72,7 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
         const iduser= kh.idkh;
         res.cookie(`id`, iduser);
 
-        return res.render("items/user/trangchu.ejs", { user: user });
+        return res.render("items/user/trangchu.ejs", { list: items });
       }
       else{
         res.redirect('/api/menu/items/dsve');
@@ -82,16 +85,17 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
+//=================Đăng xuất==========================
 itemsRouter.get("/dangxuat", async (req: Request, res: Response) => {
   try {
     res.clearCookie('id');
-    res.render("items/user/trangchu.ejs");
+    res.redirect('/api/menu/items/trangchu');
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
 
-//đăng kí----------------------------------
+//=======================Đăng Ký=======================
 itemsRouter.get("/dangky", async (req: Request, res: Response) => {
   try {
     res.render("items/user/dangki.ejs");
@@ -112,43 +116,84 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
     user.password = req.body.pass;
     const errors = await validate(Khac)
     const errorss = await validate(user)
-    if (errors.length > 0 ||errorss.length>0) {
-      return res.render("items/user/dangki.ejs", { message:"Phải nhập đúng"});
+    if (errors.length > 0 || errorss.length>0) {
+      return res.render("items/user/dangki.ejs", {message:req.query.message || "null"});
     } else {
         await AppDataSource.manager.save(Khac);
         const results = await AppDataSource.manager.query("SELECT * FROM khachhang WHERE idkh = (SELECT MAX(idkh) FROM khachhang);");
         user.idkh = results[0].idkh;
         await AppDataSource.manager.save(user);
-        res.redirect('/api/menu/items/trangchu');
+        res.redirect('/api/menu/items/dangnhap');
     }    
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
+//=============Thông tin chung====================
+itemsRouter.get("/thongtinchung", async (req: Request, res: Response) => {
+  try {
+    const id = req.cookies.id;
+    const moment = require('moment');
+    if (id){
+      const results = await AppDataSource.manager.query(`SELECT * FROM khachhang WHERE idkh = ${id}`);
+      const ns = moment(results[0].ngaysinh).format('DD/MM/YYYY');//ngày sinh của khách hàng
+      //lịch sử giao dịch
+      const ls = await AppDataSource.manager.query(`SELECT phim.tenphim, phong.tenphong, ghe.tenghe, ghe.giaghe, ve.ngaymua FROM ve LEFT JOIN ghe ON ve.idghe = ghe.idghe LEFT JOIN phong ON ghe.idphong = phong.idphong LEFT JOIN lichchieu ON lichchieu.idphong = phong.idphong LEFT JOIN phim ON phim.idphim = lichchieu.idphim WHERE ve.idkh = ${id};`);
+      // for(let i=0; i<ls.length; i++){
+      //   const nm = moment(ls[i].ngaymua).format('DD/MM/YYYY');
+      //   return res.render("items/user/thongtinchung.ejs", { list:results, ngaysinh: ns, list2:ls, ngaymua:nm});
+      // }
+      const nm = [];
+      for(let i=0; i<ls.length; i++){
+        const t = moment(ls[i].ngaymua).format('DD/MM/YYYY');
+        nm.push(t);
+      }
+      return res.render("items/user/thongtinchung.ejs", { list:results, ngaysinh: ns, list2:ls, ngaymua:nm});
+    }
+    else {
+      return res.render("items/user/login.ejs");
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//Đổi mật khẩu
+itemsRouter.get("/doimk", async (req: Request, res: Response) => {
+  try {
+    res.render("items/user/doimk.ejs");
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+itemsRouter.post("/xulydoimk", async (req: Request, res: Response) => {
+  try {
+    const id = req.cookies.id;
+    const password = req.body.password;
+    const password_new = req.body.password_new;
+    const re_password = req.body.re_password;
+    const results = await AppDataSource.manager.query(`SELECT password FROM User WHERE idkh = ${id}`);
+   
+    if (results.length > 0 && results[0].password === password) {
+      if (password_new === re_password) {
+        const sqlQuery = `UPDATE User SET password = '${password_new}' WHERE idkh = '${id}'`;
+        await AppDataSource.manager.query(sqlQuery);
+        res.redirect('/api/menu/items/doimk');
+      } else {
+        res.redirect('/api/menu/items/doimk?message=Nhập lại mật khẩu không khớp');
+      }
+    } else {
+      res.redirect('/api/menu/items/doimk?message=Mật khẩu hiện tại không đúng');
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+  res.render("items/user/doimk.ejs");
+});
 
 
 
 
-// itemsRouter.post('/login', async (req: Request, res: Response) => {
-//   const email = req.body.email;
-//   const password = req.body.password;
 
-//   try {
-//     // Kiểm tra xem email và password có trong DB không
-//     const user = await AppDataSource.manager.findOne(User, { where: { email: email, password: password } });
-
-//     if (user) {
-//       // Nếu email và password trùng với DB thì cho phép đăng nhập
-//       return res.render("items/ve", { user: user });
-//     } else {
-//       // Nếu không thì thông báo lỗi đăng nhập
-//       return res.render("items/dangnhap", { message: "Email hoặc mật khẩu không đúng." });
-//     }
-//   } catch (e) {
-//     res.status(500).send(e.message);
-//   }
-// });
-//
 //----------------------------------vé---------------------
 //trang quan ly ve
 itemsRouter.get("/dsve", async (req: Request, res: Response) => {
@@ -608,26 +653,56 @@ itemsRouter.delete("/deletelichchieu/:id", async (req: Request, res: Response) =
 //Dat ve
 
 itemsRouter.get("/datve/:id", async (req: Request, res: Response) => {
-  const idphim: number = parseInt(req.params.id, 10);
+  // const idphim: number = parseInt(req.params.id, 10);
+  const id = req.params.id;
+  let idphim: number;
+
+  if (isNaN(Number(id))) {
+    // Đường dẫn URL không hợp lệ (không phải số)
+    return res.redirect(`/api/menu/items/${id}`);
+  }
+
+  // Chuyển đổi `id` thành số
+  idphim = Number(id);
   try {
     const item = await AppDataSource.manager.findOneOrFail(Phim, { where: { idphim } });
 
-
-    //
-  return res.render("items/user/Dat_ve", { list:[item],message:"null"});
+    // Trả về trang đặt vé với thông tin phim và form đặt vé
+    return res.render("items/user/Dat_ve", { list:[item], message:"null" });
     
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
+
 //Ngay chieu với idphim
 itemsRouter.get("/ngaychieu/:id", async (req: Request, res: Response) => {
-  const idphim: number = parseInt(req.params.id, 10);
-  try {
-    const results = await AppDataSource.manager.query("SELECT DISTINCT DATE_FORMAT(ngaychieu, '%Y-%m-%d') AS ngaychieu_formatted FROM Lichchieu WHERE idphim = ?",[idphim]);
+  // const id = req.params.id;
+  // const idphim: number = isNaN(Number(id)) ? 0 : Number(id);
+  // if (idphim === 0) {
+  //   // Đường dẫn URL không hợp lệ (không chứa số)
+  //   return res.redirect(`/api/menu/items/${idphim}`);
+  // }
+  const id = req.params.id;
+  let idphim: number;
 
-    //
-  return res.render("items/user/chonVe", { iphim:idphim,list:results,message:"null"});
+  if (isNaN(Number(id))) {
+    // Đường dẫn URL không hợp lệ (không phải số)
+    return res.redirect(`/api/menu/items/${id}`);
+  }
+
+  // Chuyển đổi `id` thành số
+  idphim = Number(id);
+  try {
+    const id = req.cookies.id;
+    if(id){
+      const results = await AppDataSource.manager.query("SELECT DISTINCT DATE_FORMAT(ngaychieu, '%Y-%m-%d') AS ngaychieu_formatted FROM Lichchieu WHERE idphim = ?",[idphim]);
+      return res.render("items/user/chonVe", { iphim:idphim,list:results,message:"null"});
+    }
+    else{
+      return res.redirect(`/api/menu/items/dangnhap`);
+    }
+    
     
   } catch (e) {
     res.status(500).send(e.message);
@@ -649,7 +724,17 @@ itemsRouter.post("/giochieu", async (req: Request, res: Response) => {
 });
 //chọn ghe theo id gio chieu//lay ng dang danh nhap o localhost
 itemsRouter.get("/chonghe/:id", async (req: Request, res: Response) => {
-  const idlichchieu: number = parseInt(req.params.id, 10);
+  // const idlichchieu: number = parseInt(req.params.id, 10);
+  const id = req.params.id;
+  let idlichchieu: number;
+
+  if (isNaN(Number(id))) {
+    // Đường dẫn URL không hợp lệ (không phải số)
+    return res.redirect(`/api/menu/items/${id}`);
+  }
+
+  // Chuyển đổi `id` thành số
+  idlichchieu = Number(id);
 
   try {
     const results = await AppDataSource.manager.query("SELECT Ghe.idghe, Ghe.tenghe FROM Lichchieu JOIN Ghe ON Lichchieu.idphong = Ghe.idphong WHERE Lichchieu.idlichchieu = ?",[idlichchieu]);

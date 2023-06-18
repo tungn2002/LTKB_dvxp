@@ -1,0 +1,72 @@
+<%- include('header') %>
+<div class="row" style="background-color: rgb(31, 31, 31); border-radius: 25px;">
+    <section class="justify-content-center">
+        <div class="row" style="height: 50px; background-color: black; border-radius: 20px; text-align: center; margin: 20px;">
+            <h2 class="text-white">Thông tin chung</h2>
+        </div>
+        <div class="row text-white" style="background-color: black; border-radius: 20px; margin: 20px;">
+            <div class="col"></div>
+            <div class="col-10" style="margin-top: 50px; margin-bottom: 50px; margin-left: 50px; display: inline;">
+                <% for (let i=0; i<list.length; i++) { %>
+                    <div style="margin-bottom: 20px;"><h4>Thông tin tài khoản</h4></div>
+                    <div><b>Họ tên: </b><%= list[i].tenkh %></div>
+                    <div><b>Giới tính: </b><%= list[i].gioitinh %></div>
+                    <div><b>Ngày sinh: </b><%= ngaysinh %></div>
+                    <div><b>Địa chỉ: </b><%= list[i].diachi %></div>
+                    <div><b>Số điện thoại: </b><%= list[i].sodienthoai %></div>
+                <% } %>
+                <div style="margin-top: 30px;">
+                    <a class="btn btn-dark" href="./suathongtin" style="text-decoration: none; color: white;">Sửa thông tin</a>
+                    <a class="btn btn-dark" href="./doimk" style="text-decoration: none; color: white;">Đổi mật khẩu</a>
+                </div>
+            </div>
+            <div class="col"></div>
+            <!-- <div class="col-3" style="margin: 50px;">
+                <div class="btn btn-dark" style="width: 150px; height: 45px; margin-top: 30px;">
+                    <a href="./Doi_mat_khau.html" style="text-decoration: none; color: white;">Đổi mật khẩu</a>
+                </div>
+            </div> -->
+        </div>
+        <div class="row text-white" style="background-color: black; border-radius: 20px; margin: 20px;">
+            <div style="margin: 20px; padding-left: 50px;">
+                <h4 class="text-white">Lịch sử giao dịch</h4>
+            </div>
+            <div class="col"></div>
+            <div class="col-10" style="margin-bottom: 50px; margin-left: 50px; margin-right: 50px;">
+                <div class="row">
+                    <table>
+                        <tr>
+                            <th>STT</th>
+                            <th>Ngày mua</th>
+                            <th>Phim</th>
+                            <th>Phòng</th>
+                            <th>Ghế</th>
+                            <th>Giá vé</th>
+                        </tr>
+                        <% for (let i=0; i<list2.length; i++) { %>
+                            <tr>
+                                <td><%= i+1 %></td>
+                                <td><%= ngaymua[i] %></td>
+                                <td><%= list2[i].tenphim %></td>
+                                <td><%= list2[i].tenphong %></td>
+                                <td><%= list2[i].tenghe %></td>
+                                <td><%= list2[i].giaghe %></td>
+                            </tr>
+                        <% } %>
+                    </table>
+                    <style>
+                        table, th, td{
+                            border: 1px solid rgb(255, 255, 255);
+                            text-align: center;
+                        }
+                    </style>
+                </div>
+            </div>
+            <div class="col"></div>
+        </div>
+    </section>
+</div>
+
+<div class="row" style="height: 100px;"></div>
+<div class="row" style="height: 100px; border-top: 2px solid rgb(31, 31, 31);"></div>
+<%- include('footer') %>

@@ -1,0 +1,33 @@
+<%- include('header') %>
+<section class="row text-white" style="background-color: rgb(31, 31, 31); border-radius: 25px;">
+    <div class="col"></div>
+    <div class="col-10" style="background-color: rgb(0, 0, 0); border-radius: 25px; margin: 30px;">
+        <div style="margin: 30px; padding-bottom: 30px;"><h2 style="text-align: center;">Đổi mật khẩu</h2></div>
+        <form action="/api/menu/items/xulydoimk" method="post" class="form">
+            <div class="el1" style="margin: 20px; display: flex;">
+                <label for="">Mật khẩu hiện tại:</label>
+                <input name="password" type="password" style="border-radius: 10px; display: flex; flex: 1; margin-left: 15px;">
+            </div>
+            <div class="el1" style="margin: 20px; display: flex;">
+                <label for="">Mật khẩu mới:</label>
+                <input name="password_new" type="password" style="border-radius: 10px; display: flex; flex: 1; margin-left: 40px;">
+            </div>
+            <div class="el1" style="margin: 20px; display: flex;">
+                <label for="">Nhập lại mật khẩu:</label>
+                <input name="re_password" type="password" style="border-radius: 10px; display: flex; flex: 1; margin-left: 10px;">
+            </div>
+            <div style="margin: 30px; display: flex; justify-content: right;">
+                <div style="margin: 10px;"><button type="submit" class="btn btn-outline-light btn-dark" style="width: 100px;">Xác nhận</button></div>
+                <div style="margin: 10px;"><a class="btn btn-outline-light btn-dark" style="width: 100px;" href="./thongtinchung">Hủy</a></div>
+            </div>
+        </form>
+
+        
+    </div>
+    <div class="col"></div>
+    
+</section>
+
+<div class="row" style="height: 100px;"></div>
+<div class="row" style="height: 100px; border-top: 2px solid rgb(31, 31, 31);"></div>
+<%- include('footer') %>

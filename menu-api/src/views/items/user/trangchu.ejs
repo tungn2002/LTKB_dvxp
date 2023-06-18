@@ -8,20 +8,22 @@
             <div class="row d-flex justify-content-around" style="background-color: rgb(31, 31, 31); border-radius: 25px;">
                 <div class="col-10" >
                     <div class="row" style="background-color: black; border-radius: 25px; margin-top: 50px; margin-bottom: 50px;">
-                        <div class="col d-flex justify-content-center" style="margin-top: 50px;">
-                            <div class="c2" style="margin-top: 50px;">
-                                <a href=".\Dat_ve.html" class="test"><img src="/ảnh/1.png" alt=""></a>
-                                <div class="c2-1 text-white">
-                                    <p>
-                                        <b>LẬT MẶT 6: TẤM VÉ ĐỊNH MỆNH</b><br>
-                                        <b>Thể loại: </b>Hài, hành động, hồi hộp, tâm lý<br>
-                                        <b>Thời lượng: </b>132 phút<br>
-                                        <b>Khởi chiếu: </b>28-04-2023
-                                    </p>
+                        <% for (let i=0; i<list.length; i++) { %>
+                            <div class="col d-flex justify-content-center" style="margin-top: 50px;">
+                                <div class="c2" style="margin-top: 50px;">
+                                    <a href="./datve/<%= i + 1%>" class="test"><img src="/ảnh/<%= list[i].image%>" alt=""></a>
+                                    <div class="c2-1 text-white">
+                                        <p>
+                                            <b><%= list[i].tenphim %></b><br>
+                                            <b>Thể loại: </b><%= list[i].theloai%><br>
+                                            <b>Nội dung: </b><%= list[i].noidung.substr(0,70) %><br>
+                                            <b>Đạo diên: </b><%= list[i].daodien %>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col d-flex justify-content-center" style="margin-top: 50px;">
+                        <% } %>
+                        <!-- <div class="col d-flex justify-content-center" style="margin-top: 50px;">
                             <div class="c2" style="margin-top: 50px;">
                                 <a href="" class="test"><img src="/ảnh/2.png" alt=""></a>
                                 <div class="c2-1 text-white">
@@ -59,7 +61,7 @@
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
