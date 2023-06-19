@@ -17,8 +17,10 @@ import { User } from "../entity/User";
 import { Brackets } from "typeorm";
 //import * as session from 'express-session';
 
+
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 //
 
 //validate
@@ -55,13 +57,18 @@ itemsRouter.get("/trangchu", async (req: Request, res: Response) => {
     const endIndex = page * limit;
 
     // Lấy danh sách vé đã mua từ cơ sở dữ liệu
-    const items = await AppDataSource.manager.find(Phim, {
-      skip: startIndex,
-      take: limit,
-    });
+    const items = await AppDataSource.manager.createQueryBuilder()
+  .select("phim")
+  .from(Phim, "phim")
+  .where(`phim.idphim IN (SELECT DISTINCT idphim FROM lichchieu)`)
+  .skip(startIndex)
+  .take(limit)
+  .getMany();
+
+
 
     // Tổng số bản ghi
-    const total = await AppDataSource.manager.count(Phim);
+    const total = items.length;
 
     // Số trang
     const totalPages = Math.ceil(total / limit);
@@ -91,17 +98,25 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
   const email = req.body.email;
   const password = req.body.password; 
   try {
+    
+
+    
     // Kiểm tra xem email và password có trong DB không
+
     const user = await AppDataSource.manager.findOne(User, { where: { email: email } });
-    const items = await AppDataSource.manager.query("SELECT * FROM phim");
+    // const items = await AppDataSource.manager.query("SELECT * FROM phim");
     if (user && (await bcrypt.compare(password, user.password))) {//kiem tra xem nola admin hay la khach hang
       if(user.idql==null){
         // Nếu email và password trùng với DB thì cho phép đăng nhập
         const kh = await AppDataSource.manager.findOne(Khachhang, { where: { idkh: user.idkh} });
         const iduser= kh.idkh;
         res.cookie(`id`, iduser);
-
-        return res.render("items/user/trangchu.ejs", { list: items });
+        res.redirect('/api/menu/items/trangchu');
+        // return res.render("items/user/trangchu.ejs", { 
+        //   list: items,
+        //   totalPages,
+        //   currentPage: page,
+        // });
       }
       else{
         res.redirect('/api/menu/items/dsve');
@@ -146,7 +161,7 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
     const errors = await validate(Khac)
     const errorss = await validate(user)
     if (errors.length > 0 || errorss.length>0) {
-      return res.render("items/user/dangki.ejs", {message:req.query.message || "null"});
+      return res.render("items/user/dangki.ejs");
     } else {
         await AppDataSource.manager.save(Khac);
         const results = await AppDataSource.manager.query("SELECT * FROM khachhang WHERE idkh = (SELECT MAX(idkh) FROM khachhang);");
@@ -205,7 +220,7 @@ itemsRouter.post("/xulydoimk", async (req: Request, res: Response) => {
       if (password_new === re_password) {
         user.password = await bcrypt.hash(password_new, 10);
         await AppDataSource.manager.save(user);
-        res.redirect('/api/menu/items/doimk');
+        res.redirect('/api/menu/items/thongtinchung');
       } else {
         res.redirect('/api/menu/items/doimk?message=Nhập lại và mật khẩu mới không khớp');
       }
@@ -282,6 +297,46 @@ itemsRouter.post("/createphim", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
+
+// itemsRouter.post("/createphim", async (req: Request, res: Response) => {
+//   try {
+//     const phim = new Phim()
+//     phim.tenphim = req.body.name;
+//     phim.theloai = req.body.theloai;
+//     phim.noidung = req.body.noidung;
+//     phim.daodien = req.body.daodien;
+
+//     if (req.files && req.files.anh) {
+//       const file = req.files.anh;
+//       const fileName = Date.now() + '-' + file.name;
+//       const filePath = 'public/anh/' + fileName;
+//       file.mv(filePath, (err) => {
+//         if (err) {
+//           console.error(err);
+//           res.status(500).send(err);
+//         } else {
+//           phim.image = '/anh/' + fileName; // Lưu đường dẫn của file vào database
+//           AppDataSource.manager.save(phim);
+//           res.redirect('/api/menu/items/dsphim');
+//         }
+//       });
+//     } else {
+//       const errors = await validate(phim)
+//       if (errors.length > 0) {
+//         res.redirect('/api/menu/items/addphim?message=Phải nhập đúng và đầy đủ ký tự');
+//       } else {
+//         await AppDataSource.manager.save(phim);
+//         res.redirect('/api/menu/items/dsphim');
+//       }
+//     }
+//   } catch (e) {
+//     console.error(e);
+//     res.status(500).send(e.message);
+//   }
+// });
+
+
+
 //trang sửa phim
 itemsRouter.get("/editphim/:id", async (req: Request, res: Response) => {
   const idphim: number = parseInt(req.params.id, 10);
