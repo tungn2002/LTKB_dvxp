@@ -5,7 +5,6 @@ import express, { Request, Response } from "express";
 import * as ItemService from "./items.service";
 import { BaseItem, Item } from "./item.interface";
 import { AppDataSource } from "../data-source";
-import { Photo } from "../entity/Photo";
 import { validate } from "class-validator";
 import { Ve } from "../entity/Ve";
 import { Khachhang } from "../entity/Khachhang";
@@ -18,12 +17,13 @@ import { Brackets } from "typeorm";
 //import * as session from 'express-session';
 
 
+
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 //
 
-//validate
+
 /**
  * Router Definition
  */
@@ -40,6 +40,8 @@ itemsRouter.use(cookieParser());
 /**
  * Controller Definitions
  */
+//
+
 //
 
 //************************************<= TRƯỜNG =>***************************************
@@ -278,15 +280,18 @@ itemsRouter.get("/addphim", async (req: Request, res: Response) => {
 });
 
 //them phim
-itemsRouter.post("/createphim", async (req: Request, res: Response) => {
+itemsRouter.post('/createphim', async (req: Request, res: Response) => {
   try {
-    const phim = new Phim()
+    const phim = new Phim();
     phim.tenphim = req.body.name;
     phim.theloai = req.body.theloai;
     phim.noidung = req.body.noidung;
-    phim.daodien = req.body.daodien;
+    phim.daodien = req.body.daodien; 
     phim.image = req.body.anh;
-    const errors = await validate(phim)
+   
+
+    const errors = await validate(phim);
+
     if (errors.length > 0) {
       res.redirect('/api/menu/items/addphim?message=Phải nhập đúng và đầy đủ ký tự');
     } else {
@@ -294,6 +299,7 @@ itemsRouter.post("/createphim", async (req: Request, res: Response) => {
       res.redirect('/api/menu/items/dsphim');
     }
   } catch (e) {
+    console.error(e);
     res.status(500).send(e.message);
   }
 });
@@ -1125,6 +1131,7 @@ itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
 //thongketk
 itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
   try {
+    
     const ngayA = req.body.date1; // Ngay A truyen tu client
     const ngayB = req.body.date2; // Ngay B truyen tu client
     const maPhim = req.body.idphim; // Ma phim truyen tu client
@@ -1144,7 +1151,8 @@ itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
     const endIndex = page * limit; // Vị trí kết thúc của bản ghi trên trang hiện tại
     const total = results.length; // Tổng số bản ghi
     const totalPages = Math.ceil(total / limit); // Số trang
-    const items = results.slice(startIndex, endIndex); // Danh sách kết quả trên trang hiện tại
+    const items = results.slice(startIndex, endIndex);
+     // Danh sách kết quả trên trang hiện tại
 
     return res.render("items/thongkedoanhthutk", {
       list: items,
@@ -1190,23 +1198,6 @@ itemsRouter.get("/addd", async (req: Request, res: Response) => {
 });
 // GET items
 
-itemsRouter.get("/", async (req: Request, res: Response) => {
-    try {
-      //const items: Item[] = await ItemService.findAll();
-  
-      //res.status(200).send(items);
-      
-      //list dung fo duyet item
-      //get tu entiy
-      //cach 1
-      const items= await AppDataSource.manager.find(Photo);
-      res.render("items/ds",{list:items,title:"Danh sach foody"});
-      //cach 2 getrepostiyy
-      //cach 3 create builder
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
   
   // GET items/:id
   
@@ -1225,77 +1216,6 @@ itemsRouter.get("/", async (req: Request, res: Response) => {
       res.status(500).send(e.message);
     }
   });
-  
-  //them
-  itemsRouter.post("/them", async (req: Request, res: Response) => {
-    try {
-      const photo = new Photo()
-      photo.name = req.body.name;
-      photo.description =req.body.description;
-      photo.filename = req.body.filename;
-      const views = parseFloat(req.body.views);
-      photo.views = views;
-      photo.isPublished = req.body.isPublished;
-      const errors = await validate(photo)
-      if (errors.length > 0) {
-        return res.render("items/add", { message:"Phải nhập đúng và đầy đủ ký tự"});
-      } else {
-          await AppDataSource.manager.save(photo);
-          res.redirect('/api/menu/items');
-      }
-      
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
-  //
-
-  //sua
-  itemsRouter.get("/edit/:id", async (req: Request, res: Response) => {
-    const id: number = parseInt(req.params.id, 10);
-    try {
-      // tìm kiếm đối tượng Photo theo id
-    const item = await AppDataSource.manager.findOneOrFail(Photo, { where: { id } });
-
-    // Trả về đối tượng đó cho items/ds
-    return res.render("items/edit", { list: [item],message:"null"});
-      
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
-  //update:
-  itemsRouter.put("/update/:id", async (req: Request, res: Response) => {
-    const idz: number = parseInt(req.params.id, 10);
-    try {
-      
-      const photoRepository = AppDataSource.getRepository(Photo)
-      const photoToUpdate = await photoRepository.findOneBy({
-          id: idz,
-      })
-      photoToUpdate.name = req.body.name;
-      photoToUpdate.description =req.body.description;
-      photoToUpdate.filename = req.body.filename;
-      const views = parseFloat(req.body.views);
-      photoToUpdate.views = views;
-      photoToUpdate.isPublished = req.body.isPublished;
-
-      const errors = await validate(photoToUpdate)
-      if (errors.length > 0) {
-        return res.render("items/edit", { list: [photoToUpdate],message:"Phải nhập đúng và đầy đủ ký tự"});
-
-      } else {
-          await photoRepository.save(photoToUpdate)
-          res.redirect('/api/menu/items');
-      }
-      
-
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
-  // POST items
-  
   itemsRouter.post("/", async (req: Request, res: Response) => {
     try {
       
@@ -1333,21 +1253,7 @@ itemsRouter.get("/", async (req: Request, res: Response) => {
   });
   
   //xoa
-   
-  itemsRouter.delete("/delete/:id", async (req: Request, res: Response) => {
-    try {
-      const idz: number = parseInt(req.params.id, 10);
-      const photoRepository = AppDataSource.getRepository(Photo)
-      const photoToRemove = await photoRepository.findOneBy({
-          id: idz,
-      })
-      await photoRepository.remove(photoToRemove)
-      res.redirect('/api/menu/items');
 
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
   // DELETE items/:id
   
   itemsRouter.delete("/:id", async (req: Request, res: Response) => {
