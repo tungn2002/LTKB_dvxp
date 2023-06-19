@@ -18,6 +18,7 @@ import { Brackets } from "typeorm";
 //import * as session from 'express-session';
 
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 //
 
 //validate
@@ -39,18 +40,46 @@ itemsRouter.use(cookieParser());
  */
 //
 
-//=====================TRƯỜNG=======================
-// ====Đăng nhập=====
+//************************************<= TRƯỜNG =>***************************************
+// ============================================Trang chủ================================================
 itemsRouter.get("/trangchu", async (req: Request, res: Response) => {
   try {
-    const items = await AppDataSource.manager.query("SELECT * FROM phim");
-    //khi chạy trang chủ thì sẽ chuyền vào list. list này chưa ds phim
-    return res.render("items/user/trangchu.ejs", { list: items });
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 4;
+
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+    const items = await AppDataSource.manager.find(Phim, {
+      skip: startIndex,
+      take: limit,
+    });
+
+    // Tổng số bản ghi
+    const total = await AppDataSource.manager.count(Phim);
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Render trang EJS với danh sách vé, số trang và trang hiện tại
+    return res.render("items/user/trangchu.ejs", { 
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+    // const items = await AppDataSource.manager.query("SELECT * FROM phim");
+    // //khi chạy trang chủ thì sẽ chuyền vào list. list này chưa ds phim
+    // return res.render("items/user/trangchu.ejs", { list: items });
   } catch (e) {
     res.status(500).send(e.message);
   }
 });
-//========================Đăng nhập==========================
+//========================Đăng nhập==================================================================================
 itemsRouter.get("/dangnhap", async (req: Request, res: Response) => {
   try {
     res.render("items/user/login.ejs");
@@ -63,9 +92,9 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
   const password = req.body.password; 
   try {
     // Kiểm tra xem email và password có trong DB không
-    const user = await AppDataSource.manager.findOne(User, { where: { email: email, password: password } });
+    const user = await AppDataSource.manager.findOne(User, { where: { email: email } });
     const items = await AppDataSource.manager.query("SELECT * FROM phim");
-    if (user) {//kiem tra xem nola admin hay la khach hang
+    if (user && (await bcrypt.compare(password, user.password))) {//kiem tra xem nola admin hay la khach hang
       if(user.idql==null){
         // Nếu email và password trùng với DB thì cho phép đăng nhập
         const kh = await AppDataSource.manager.findOne(Khachhang, { where: { idkh: user.idkh} });
@@ -85,7 +114,7 @@ itemsRouter.post("/xulydangnhap", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
-//=================Đăng xuất==========================
+//=================Đăng xuất===================================================================================
 itemsRouter.get("/dangxuat", async (req: Request, res: Response) => {
   try {
     res.clearCookie('id');
@@ -95,7 +124,7 @@ itemsRouter.get("/dangxuat", async (req: Request, res: Response) => {
   }
 });
 
-//=======================Đăng Ký=======================
+//=======================Đăng Ký=============================================================================
 itemsRouter.get("/dangky", async (req: Request, res: Response) => {
   try {
     res.render("items/user/dangki.ejs");
@@ -113,7 +142,7 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
     Khac.sodienthoai = req.body.sdt;
     Khac.diachi = req.body.diachi;
     user.email = req.body.email;
-    user.password = req.body.pass;
+    user.password = await bcrypt.hash(req.body.pass, 10);
     const errors = await validate(Khac)
     const errorss = await validate(user)
     if (errors.length > 0 || errorss.length>0) {
@@ -129,7 +158,7 @@ itemsRouter.post("/xulydangky", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
-//=============Thông tin chung====================
+//=============Thông tin chung===================================================================================
 itemsRouter.get("/thongtinchung", async (req: Request, res: Response) => {
   try {
     const id = req.cookies.id;
@@ -157,7 +186,7 @@ itemsRouter.get("/thongtinchung", async (req: Request, res: Response) => {
     res.status(500).send(e.message);
   }
 });
-//Đổi mật khẩu
+//========================================Đổi mật khẩu=====================================================================================
 itemsRouter.get("/doimk", async (req: Request, res: Response) => {
   try {
     res.render("items/user/doimk.ejs");
@@ -171,15 +200,14 @@ itemsRouter.post("/xulydoimk", async (req: Request, res: Response) => {
     const password = req.body.password;
     const password_new = req.body.password_new;
     const re_password = req.body.re_password;
-    const results = await AppDataSource.manager.query(`SELECT password FROM User WHERE idkh = ${id}`);
-   
-    if (results.length > 0 && results[0].password === password) {
+    const user = await AppDataSource.manager.findOne(User, { where: { idkh: id } } );
+    if (user && (await bcrypt.compare(password, user.password))) {
       if (password_new === re_password) {
-        const sqlQuery = `UPDATE User SET password = '${password_new}' WHERE idkh = '${id}'`;
-        await AppDataSource.manager.query(sqlQuery);
+        user.password = await bcrypt.hash(password_new, 10);
+        await AppDataSource.manager.save(user);
         res.redirect('/api/menu/items/doimk');
       } else {
-        res.redirect('/api/menu/items/doimk?message=Nhập lại mật khẩu không khớp');
+        res.redirect('/api/menu/items/doimk?message=Nhập lại và mật khẩu mới không khớp');
       }
     } else {
       res.redirect('/api/menu/items/doimk?message=Mật khẩu hiện tại không đúng');
@@ -190,7 +218,232 @@ itemsRouter.post("/xulydoimk", async (req: Request, res: Response) => {
   res.render("items/user/doimk.ejs");
 });
 
+//=============Quản lý phim======================================================================
+itemsRouter.get("/dsphim", async (req: Request, res: Response) => {
+  try {
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 5;
 
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+    const items = await AppDataSource.manager.find(Phim, {
+      skip: startIndex,
+      take: limit,
+    });
+
+    // Tổng số bản ghi
+    const total = await AppDataSource.manager.count(Phim);
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Render trang EJS với danh sách vé, số trang và trang hiện tại
+    return res.render("items/phim.ejs", { 
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//=====trang thêm phim==========
+itemsRouter.get("/addphim", async (req: Request, res: Response) => {
+  try {
+    res.render("items/addphim.ejs", {message:req.query.message || "null"});
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+//them phim
+itemsRouter.post("/createphim", async (req: Request, res: Response) => {
+  try {
+    const phim = new Phim()
+    phim.tenphim = req.body.name;
+    phim.theloai = req.body.theloai;
+    phim.noidung = req.body.noidung;
+    phim.daodien = req.body.daodien;
+    phim.image = req.body.anh;
+    const errors = await validate(phim)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/addphim?message=Phải nhập đúng và đầy đủ ký tự');
+    } else {
+      await AppDataSource.manager.save(phim);
+      res.redirect('/api/menu/items/dsphim');
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//trang sửa phim
+itemsRouter.get("/editphim/:id", async (req: Request, res: Response) => {
+  const idphim: number = parseInt(req.params.id, 10);
+  try {
+    const item = await AppDataSource.manager.findOneOrFail(Phim, { where: { idphim } });
+    //return res.render("items/editphim.ejs", { list:item, message:req.query.message || "null"});
+    return res.render("items/editphim.ejs", { list :[item] , message:req.query.message || "null"});   
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//Sửa phim
+itemsRouter.put("/updatephim/:id", async (req: Request, res: Response) => {
+  const idz: number = parseInt(req.params.id, 10);
+  try {
+    
+    const phimToUpdate = AppDataSource.getRepository(Phim)
+    const phim = await phimToUpdate.findOneBy({
+        idphim: idz,
+    })
+    phim.tenphim = req.body.name;
+    phim.theloai = req.body.theloai;
+    phim.noidung = req.body.noidung;
+    phim.daodien = req.body.daodien;
+    phim.image = req.body.anh;
+    const errors = await validate(phim)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/editphim/'+idz+'?message=Phải nhập đúng và đầy đủ ký tự');
+    } else {
+      await phimToUpdate.save(phim)
+      res.redirect('/api/menu/items/dsphim');
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//xóa phim
+
+itemsRouter.delete("/deletephim/:id", async (req: Request, res: Response) => {
+  try {
+    const idz: number = parseInt(req.params.id, 10);
+    const phimRepository = AppDataSource.getRepository(Phim)
+    const phimToRemove = await phimRepository.findOneBy({
+        idphim: idz,
+    })
+    await phimRepository.remove(phimToRemove)
+    res.redirect('/api/menu/items/dsphim');
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+//============Quản lý phòng==========================================================================================
+
+itemsRouter.get("/dsphong", async (req: Request, res: Response) => {
+  try {
+    // Số lượng bản ghi hiển thị trên mỗi trang
+    const limit = 5;
+
+    // Trang hiện tại
+    const page = parseInt(req.query.page as string) || 1;
+
+    // Tính toán vị trí bắt đầu và kết thúc của bản ghi
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Lấy danh sách vé đã mua từ cơ sở dữ liệu
+    const items = await AppDataSource.manager.find(Phong, {
+      skip: startIndex,
+      take: limit,
+    });
+
+    // Tổng số bản ghi
+    const total = await AppDataSource.manager.count(Phong);
+
+    // Số trang
+    const totalPages = Math.ceil(total / limit);
+
+    // Render trang EJS với danh sách vé, số trang và trang hiện tại
+    return res.render("items/phong.ejs", { 
+      list: items,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//====trang thêm phòng=====
+itemsRouter.get("/addphong", async (req: Request, res: Response) => {
+  try {
+    res.render("items/addphong.ejs", {message:req.query.message || "null"});
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+//them phong
+itemsRouter.post("/createphong", async (req: Request, res: Response) => {
+  try {
+    const phong = new Phong()
+    phong.tenphong = req.body.name;
+    const errors = await validate(phong)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/addphong?message=Phải nhập đúng và đầy đủ ký tự');
+    } else {
+      await AppDataSource.manager.save(phong);
+      res.redirect('/api/menu/items/dsphong');
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//trang sửa phong
+itemsRouter.get("/editphong/:id", async (req: Request, res: Response) => {
+  const idphong: number = parseInt(req.params.id, 10);
+  try {
+    const item = await AppDataSource.manager.findOneOrFail(Phong, { where: { idphong } });
+    //return res.render("items/editphim.ejs", { list:item, message:req.query.message || "null"});
+    return res.render("items/editphong.ejs", { list :[item] , message:req.query.message || "null"});   
+    
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//Sửa phong
+itemsRouter.put("/updatephong/:id", async (req: Request, res: Response) => {
+  const idz: number = parseInt(req.params.id, 10);
+  try {
+    
+    const phimToUpdate = AppDataSource.getRepository(Phong)
+    const phong = await phimToUpdate.findOneBy({
+        idphong: idz,
+    })
+    phong.tenphong = req.body.name;
+    const errors = await validate(phong)
+    if (errors.length > 0) {
+      res.redirect('/api/menu/items/editphong/'+idz+'?message=Phải nhập đúng và đầy đủ ký tự');
+    } else {
+      await phimToUpdate.save(phong)
+      res.redirect('/api/menu/items/dsphong');
+    }
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+//xóa phong
+
+itemsRouter.delete("/deletephong/:id", async (req: Request, res: Response) => {
+  try {
+    const idz: number = parseInt(req.params.id, 10);
+    const phongRepository = AppDataSource.getRepository(Phong)
+    const phongToRemove = await phongRepository.findOneBy({
+        idphong: idz,
+    })
+    await phongRepository.remove(phongToRemove)
+    res.redirect('/api/menu/items/dsphong');
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
 
 
 

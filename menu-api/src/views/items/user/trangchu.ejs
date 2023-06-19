@@ -16,7 +16,7 @@
                                         <p>
                                             <b><%= list[i].tenphim %></b><br>
                                             <b>Thể loại: </b><%= list[i].theloai%><br>
-                                            <b>Nội dung: </b><%= list[i].noidung.substr(0,70) %><br>
+                                            <b>Nội dung: </b><%= list[i].noidung.substr(0,500) %><br>
                                             <b>Đạo diên: </b><%= list[i].daodien %>
                                         </p>
                                     </div>
@@ -63,6 +63,25 @@
                             </div>
                         </div> -->
                     </div>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item"><a class="btn btn-secondary" style="margin: 10px;" href="?page=<%= currentPage - 1 %>">Trang trước</a></li>
+                            <% } %>
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <% if (i === currentPage) { %>
+                                <li class="page-item active"><a class="btn btn-secondary" style="margin: 10px;" href="?page=<%= i %>"><%= i %></a></li>
+                                <% } else { %>
+                                <li class="page-item"><a class="btn btn-secondary" style="margin: 10px;" href="?page=<%= i %>"><%= i %></a></li>
+                                <% } %>
+                            <% } %>
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item"><a class="btn btn-secondary" style="margin: 10px;" href="?page=<%= currentPage + 1 %>">Trang tiếp</a></li>
+                            <% } %>
+                        </ul>
+                    </nav>
                 </div>
             </div>
 
