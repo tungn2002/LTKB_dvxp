@@ -10,11 +10,14 @@
                         <div>
                             <h5 class="modal-title" id="exampleModalLabel" style="margin-bottom: 20px;">Ghế:</h5>
                             <div class="modal-body" style="margin-left: 10px;">
-                                <% var myArray = []; 
+                              <!-- tạo mảng chứa ds idghe -->
+
+                                <% var myArray = [];
                                 for (let p2 of list2){
                                   myArray.push(p2.idghe)
                                 }
                                 %>
+                                      <!-- tạo mảng chứa ds idghe , reduce: lặp, lấy các các chữ cái đầu cho vào mảng-->
                                 <% const groups = list.reduce((result, item) => {
                                        const firstChar = item.tenghe.charAt(0).toUpperCase();
                                        if (!result[firstChar]) {
@@ -26,9 +29,11 @@
                                    Object.keys(groups).sort().forEach((key) => {
                                        const group = groups[key];
                                        %>
+                                      <!--sort săp xếp a-z-->
                                        <div class="d-flex align-items-center mb-3">
                                          <div class="group-title mr-2 p-1"><%= key %></div>
                                          <div class="btn-group" role="group">
+                                           <!--Nếu ghế khong có trong ds ve => đc đặt -->
                                            <% group.forEach((item) => { %>
                                              <% if(!myArray.includes(item.idghe)){ %>
                                                <form action="/api/menu/items/datghe" method="post">

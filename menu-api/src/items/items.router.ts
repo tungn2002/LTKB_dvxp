@@ -507,7 +507,7 @@ itemsRouter.delete("/deletephong/:id", async (req: Request, res: Response) => {
 });
 
 
-
+//************************************<= Tùng =>***************************************
 //----------------------------------vé---------------------
 //trang quan ly ve
 itemsRouter.get("/dsve", async (req: Request, res: Response) => {
@@ -860,7 +860,8 @@ itemsRouter.get("/addlichchieu", async (req: Request, res: Response) => {
   try {
     const item2= await AppDataSource.manager.find(Phim);
     const items = await AppDataSource.manager.query("SELECT phong.* FROM phong LEFT JOIN lichchieu ON phong.idphong = lichchieu.idphong WHERE lichchieu.idphong IS NULL;");
-
+    //ko được lấy idphong đã có lịch chiếu
+    //phòng dc trùng tên
 
 
     return res.render("items/addlichchieu", {list:items,list2:item2,message:req.query.message || "null"});
@@ -1010,6 +1011,7 @@ itemsRouter.get("/ngaychieu/:id", async (req: Request, res: Response) => {
   try {
     const id = req.cookies.id;
     if(id){
+      //lay ngày chiếu duy nhất
       const results = await AppDataSource.manager.query("SELECT DISTINCT DATE_FORMAT(ngaychieu, '%Y-%m-%d') AS ngaychieu_formatted FROM Lichchieu WHERE idphim = ?",[idphim]);
       return res.render("items/user/chonVe", { iphim:idphim,list:results,message:"null"});
     }
@@ -1051,6 +1053,7 @@ itemsRouter.get("/chonghe/:id", async (req: Request, res: Response) => {
   idlichchieu = Number(id);
 
   try {
+    //chon ghe voi idphong giong nhau giưa lịch chếu và ghế
     const results = await AppDataSource.manager.query("SELECT Ghe.idghe, Ghe.tenghe FROM Lichchieu JOIN Ghe ON Lichchieu.idphong = Ghe.idphong WHERE Lichchieu.idlichchieu = ?",[idlichchieu]);
     const results2 = await AppDataSource.manager.query("SELECT idghe FROM Ve");
     //
@@ -1098,6 +1101,7 @@ itemsRouter.get("/thongkeall", async (req: Request, res: Response) => {
     const endIndex = page * limit;
 
     // Lấy danh sách kết quả từ cơ sở dữ liệu
+    //lấy doanh thu của phim từ lichchieu ,với tổng số vé và tổng số giaghe
     const results = await AppDataSource.manager.query("SELECT phim.idphim, phim.tenphim, SUM(ghe.giaghe) AS tongdoanhthu, COUNT(ve.idve) AS tongsove FROM phim INNER JOIN lichchieu ON phim.idphim = lichchieu.idphim INNER JOIN ghe ON ghe.idphong = lichchieu.idphong INNER JOIN ve ON ve.idghe = ghe.idghe GROUP BY phim.idphim, phim.tenphim");
 
     // Tổng số bản ghi
@@ -1135,7 +1139,7 @@ itemsRouter.post("/thongketk", async (req: Request, res: Response) => {
     const ngayA = req.body.date1; // Ngay A truyen tu client
     const ngayB = req.body.date2; // Ngay B truyen tu client
     const maPhim = req.body.idphim; // Ma phim truyen tu client
-
+    //doanh thu theo ngày chiếu
     const results = await AppDataSource.manager.query(`
       SELECT lichchieu.ngaychieu, SUM(ghe.giaghe) AS tongdoanhthu 
       FROM lichchieu 
